@@ -146,8 +146,7 @@ const ExercisePageWrapper = () => {
  * Componente raíz de la aplicación AlgoMaster.
  * 
  * Estructura de rutas:
- * - / : Página de inicio (landing educativa)
- * - /roadmap : Mapa de aprendizaje visual
+ * - / : Página de inicio
  * - /modules : Lista de todos los módulos
  * - /modules/:moduleId : Detalle de un módulo específico
  * - /modules/:moduleId/lessons/:lessonId : Lección individual
@@ -163,7 +162,10 @@ function App() {
           <ScrollToTop />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
-              {/* Todas las rutas usan el layout principal */}
+              {/* Ejercicios: fullscreen sin layout (sin footer) */}
+              <Route path="practice/:exerciseId" element={<ExercisePageWrapper />} />
+
+              {/* Todas las demás rutas usan el layout principal */}
               <Route path="/" element={<MainLayout />}>
                   {/* Página de inicio */}
                   <Route index element={<HomePage />} />
@@ -175,7 +177,6 @@ function App() {
                   
                   {/* Área de práctica */}
                   <Route path="practice" element={<PracticePage />} />
-                  <Route path="practice/:exerciseId" element={<ExercisePageWrapper />} />
                   
                   {/* Modo entrevista */}
                   <Route path="interview" element={<InterviewModePage />} />

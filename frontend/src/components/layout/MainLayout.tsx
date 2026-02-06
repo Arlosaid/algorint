@@ -7,7 +7,6 @@ import {
   UserCircle,
   Menu,
   X,
-  Github,
   ExternalLink,
   FileText,
   Briefcase
@@ -129,80 +128,34 @@ const MainLayout: React.FC = () => {
       {/* ============================
           FOOTER
           ============================ */}
-      <footer className="bg-dark-800 border-t border-dark-700 py-8 mt-auto">
+      <footer className="bg-dark-800 border-t border-dark-700 py-6 mt-auto">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                  <Code2 className="text-white" size={24} />
-                </div>
-                <span className="text-xl font-bold text-white">Algorint</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
+                <Code2 className="text-white" size={18} />
               </div>
-              <p className="text-dark-400 max-w-md">
-                Domina el código, conquista tu futuro. Aprende Algoritmos y Estructuras de Datos con Python. 
-                Prepárate para entrevistas técnicas en empresas FAANG.
-              </p>
+              <span className="text-sm font-semibold text-dark-300">Algorint</span>
+              <span className="text-dark-600 text-sm">— Aprende algoritmos de forma simple</span>
             </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Enlaces Rápidos</h3>
-              <ul className="space-y-2">
-                {navItems.slice(0, 4).map((item) => (
-                  <li key={item.path}>
-                    <Link 
-                      to={item.path}
-                      className="text-dark-400 hover:text-primary-400 transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex items-center gap-4 text-dark-500 text-sm">
+              <a 
+                href="https://leetcode.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-dark-300 transition-colors flex items-center gap-1"
+              >
+                LeetCode <ExternalLink size={10} />
+              </a>
+              <a 
+                href="https://python.org" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-dark-300 transition-colors flex items-center gap-1"
+              >
+                Python <ExternalLink size={10} />
+              </a>
             </div>
-
-            {/* Resources */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Recursos</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a 
-                    href="https://leetcode.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-dark-400 hover:text-primary-400 transition-colors flex items-center gap-1"
-                  >
-                    LeetCode <ExternalLink size={12} />
-                  </a>
-                </li>
-                <li>
-                  <a 
-                    href="https://python.org" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-dark-400 hover:text-primary-400 transition-colors flex items-center gap-1"
-                  >
-                    Python Docs <ExternalLink size={12} />
-                  </a>
-                </li>
-                <li>
-                  <a 
-                    href="https://github.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-dark-400 hover:text-primary-400 transition-colors flex items-center gap-1"
-                  >
-                    <Github size={14} /> GitHub
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-dark-700 mt-8 pt-8 text-center text-dark-500 text-sm">
-            <p>© 2026 Algorint. Domina el código, conquista tu futuro.</p>
           </div>
         </div>
       </footer>

@@ -207,6 +207,7 @@ const ModulesPage: React.FC = () => {
 // ============================================
 
 // Mapa de IDs de lecciones por módulo (para calcular progreso)
+// Sincronizado con ModuleDetailPage.tsx
 const moduleLessonsMap: Record<string, string[]> = {
   'fundamentos-python': [
     'python-listas-tuplas',
@@ -216,19 +217,120 @@ const moduleLessonsMap: Record<string, string[]> = {
     'python-lambdas',
     'python-iteradores',
   ],
-  'complejidad-algoritmica': ['big-o-introduccion'],
-  'arrays-strings': ['two-pointers', 'sliding-window'],
-  'hash-tables': [],
-  'linked-lists': [],
-  'stacks-queues': [],
+  'complejidad-algoritmica': [
+    'big-o-introduccion',
+    'big-o-analisis-tiempo',
+    'big-o-analisis-espacio',
+    'big-o-casos',
+    'big-o-comparacion',
+  ],
+  'arrays-strings': [
+    'two-pointers',
+    'sliding-window',
+    'prefix-sum',
+    'string-manipulation',
+    'in-place-operations',
+    'subarray-problems',
+    'palindromes-anagrams',
+    'matrix-traversal',
+  ],
+  'hash-tables': [
+    'hash-tables-fundamentos',
+    'hash-tables-problemas',
+    'hash-counting',
+    'hash-two-sum-patterns',
+    'hash-set-operations',
+    'hash-design-problems',
+  ],
+  'linked-lists': [
+    'linked-lists-intro',
+    'linked-lists-two-pointers',
+    'linked-lists-reversal',
+    'linked-lists-merge-sort',
+    'linked-lists-advanced',
+    'linked-lists-doubly',
+    'linked-lists-problems',
+  ],
+  'stacks-queues': [
+    'stacks-intro',
+    'queues-intro',
+    'stacks-monotonic',
+    'stacks-calculator',
+    'deque-sliding-window',
+    'priority-queue',
+  ],
   'bit-manipulation': [
     'bit-operadores-basicos',
     'bit-trucos-comunes',
     'bit-problemas-clasicos',
+    'bit-xor-applications',
+    'bit-masks',
+    'bit-advanced',
   ],
-  'trees': [],
-  'recursion-backtracking': [],
-  'dynamic-programming': [],
+  'trees': [
+    'trees-intro',
+    'trees-traversals',
+    'trees-dfs',
+    'trees-bfs',
+    'trees-construction',
+    'trees-lca',
+    'trees-diameter',
+    'trees-subtree',
+    'trees-views',
+    'trees-advanced',
+  ],
+  'bst': [
+    'bst-intro',
+  ],
+  'heaps': [
+    'heaps-intro',
+    'heaps-aplicaciones',
+  ],
+  'graphs': [
+    'graphs-intro',
+    'graphs-problemas',
+  ],
+  'recursion-backtracking': [
+    'recursion-intro',
+    'backtracking-intro',
+    'backtracking-subsets',
+    'backtracking-permutations',
+    'backtracking-string',
+    'backtracking-matrix',
+    'backtracking-path',
+    'backtracking-optimization',
+  ],
+  'dynamic-programming': [
+    'dp-intro',
+    'dp-problemas',
+    'dp-1d-patterns',
+    'dp-2d-patterns',
+    'dp-knapsack',
+    'dp-coin-change',
+    'dp-subsequences',
+    'dp-strings',
+    'dp-matrix',
+    'dp-intervals',
+    'dp-state-machine',
+    'dp-bitmask',
+    'dp-digit',
+    'dp-trees',
+  ],
+  'binary-search': [
+    'binary-search-intro',
+  ],
+  'sorting-algorithms': [
+    'sorting-intro',
+  ],
+  'advanced-graphs': [
+    'advanced-graphs-intro',
+  ],
+  'tries': [
+    'tries-intro',
+  ],
+  'interview-prep': [
+    'interview-prep-intro',
+  ],
 };
 
 const modules = [

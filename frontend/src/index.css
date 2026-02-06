@@ -211,6 +211,88 @@
     }
   }
 
+  /* Animación bounce-in para completar lección */
+  .animate-bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Animación de fade-in para secciones de lección */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animación slide-in para contenido */
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Animación pulse suave para elementos interactivos */
+  .animate-pulse-soft {
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseSoft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Animación para indicadores de pasos */
+  .animate-step {
+    animation: stepAppear 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes stepAppear {
+    from {
+      opacity: 0;
+      transform: translateY(15px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   /* Efecto de typing para código */
   .typing-effect {
     overflow: hidden;
@@ -297,6 +379,234 @@
 .prose code::before,
 .prose code::after {
   content: none;
+}
+
+/* ============================================
+   DIAGRAM & ENHANCED TABLE STYLES
+   ============================================ */
+.diagram-content table {
+  @apply w-full border-collapse;
+}
+
+.diagram-content tbody tr:nth-child(even) {
+  @apply bg-blue-500/5;
+}
+
+.diagram-content pre {
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+/* Step-by-step visualization styles */
+.prose .step-indicator {
+  @apply inline-flex items-center justify-center w-6 h-6 rounded-full 
+         bg-primary-500/20 text-primary-400 text-xs font-bold mr-2 flex-shrink-0;
+}
+
+/* Enhanced blockquote in prose */
+.prose blockquote {
+  @apply border-l-4 border-primary-500 bg-primary-500/5 rounded-r-lg 
+         pl-4 pr-4 py-3 my-4 not-italic;
+}
+
+.prose blockquote p {
+  @apply text-dark-300 m-0;
+}
+
+/* ============================================
+   VISUAL LESSON ENHANCEMENTS
+   ============================================ */
+
+/* Animated code blocks - highlight effect on hover */
+.prose pre:hover,
+div[class*="SyntaxHighlighter"]:hover {
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 4px 20px rgba(34, 197, 94, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Animated diagrams - ASCII art gets special treatment */
+.diagram-content pre code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+}
+
+/* Feynman section glow effect */
+.feynman-glow {
+  position: relative;
+}
+
+.feynman-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.05));
+  border-radius: inherit;
+  z-index: -1;
+  animation: feynmanPulse 3s ease-in-out infinite;
+}
+
+@keyframes feynmanPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Info/Warning boxes enhanced */
+.lesson-info-box {
+  position: relative;
+  overflow: hidden;
+}
+
+.lesson-info-box::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+}
+
+.lesson-info-box.info::after {
+  background: linear-gradient(to bottom, #3b82f6, #06b6d4);
+}
+
+.lesson-info-box.warning::after {
+  background: linear-gradient(to bottom, #f59e0b, #ef4444);
+}
+
+/* Quiz animations */
+.quiz-option-enter {
+  animation: quizOptionEnter 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes quizOptionEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.quiz-correct {
+  animation: correctPulse 0.5s ease-out;
+}
+
+@keyframes correctPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.quiz-incorrect {
+  animation: incorrectShake 0.4s ease-out;
+}
+
+@keyframes incorrectShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Code example cards - hover to highlight */
+.code-example-card {
+  transition: all 0.3s ease;
+}
+
+.code-example-card:hover {
+  border-color: rgba(34, 197, 94, 0.3);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.05);
+}
+
+/* Progress completion celebration */
+.completion-confetti {
+  position: relative;
+}
+
+.completion-confetti::before,
+.completion-confetti::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: confetti 1s ease-out forwards;
+  opacity: 0;
+}
+
+.completion-confetti::before {
+  background: #22c55e;
+  top: -10px;
+  left: 30%;
+  animation-delay: 0.1s;
+}
+
+.completion-confetti::after {
+  background: #3b82f6;
+  top: -10px;
+  right: 30%;
+  animation-delay: 0.2s;
+}
+
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) rotate(720deg) scale(0);
+  }
+}
+
+/* Smooth section transitions */
+.lesson-section-toggle {
+  transition: all 0.3s ease;
+}
+
+.lesson-section-content {
+  animation: sectionExpand 0.3s ease-out;
+}
+
+@keyframes sectionExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+/* Test result animations */
+.test-result-item {
+  animation: testResultAppear 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.test-result-item:nth-child(1) { animation-delay: 0.05s; }
+.test-result-item:nth-child(2) { animation-delay: 0.1s; }
+.test-result-item:nth-child(3) { animation-delay: 0.15s; }
+.test-result-item:nth-child(4) { animation-delay: 0.2s; }
+.test-result-item:nth-child(5) { animation-delay: 0.25s; }
+.test-result-item:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes testResultAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================

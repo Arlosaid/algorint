@@ -388,6 +388,7 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
   };
 
   // Lista de todas las lecciones disponibles en la app
+  // Sincronizado con ModulesPage.tsx y ModuleDetailPage.tsx
   const ALL_LESSON_IDS = [
     // Módulo 1: Fundamentos de Python
     'python-listas-tuplas',
@@ -398,9 +399,101 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     'python-iteradores',
     // Módulo 2: Complejidad Algorítmica
     'big-o-introduccion',
+    'big-o-analisis-tiempo',
+    'big-o-analisis-espacio',
+    'big-o-casos',
+    'big-o-comparacion',
     // Módulo 3: Arrays y Strings
     'two-pointers',
     'sliding-window',
+    'prefix-sum',
+    'string-manipulation',
+    'in-place-operations',
+    'subarray-problems',
+    'palindromes-anagrams',
+    'matrix-traversal',
+    // Módulo 4: Hash Tables
+    'hash-tables-fundamentos',
+    'hash-tables-problemas',
+    'hash-counting',
+    'hash-two-sum-patterns',
+    'hash-set-operations',
+    'hash-design-problems',
+    // Módulo 5: Linked Lists
+    'linked-lists-intro',
+    'linked-lists-two-pointers',
+    'linked-lists-reversal',
+    'linked-lists-merge-sort',
+    'linked-lists-advanced',
+    'linked-lists-doubly',
+    'linked-lists-problems',
+    // Módulo 6: Stacks y Queues
+    'stacks-intro',
+    'queues-intro',
+    'stacks-monotonic',
+    'stacks-calculator',
+    'deque-sliding-window',
+    'priority-queue',
+    // Módulo 7: Bit Manipulation
+    'bit-operadores-basicos',
+    'bit-trucos-comunes',
+    'bit-problemas-clasicos',
+    'bit-xor-applications',
+    'bit-masks',
+    'bit-advanced',
+    // Módulo 8: Trees
+    'trees-intro',
+    'trees-traversals',
+    'trees-dfs',
+    'trees-bfs',
+    'trees-construction',
+    'trees-lca',
+    'trees-diameter',
+    'trees-subtree',
+    'trees-views',
+    'trees-advanced',
+    // Módulo 9: BST
+    'bst-intro',
+    // Módulo 10: Heaps
+    'heaps-intro',
+    'heaps-aplicaciones',
+    // Módulo 11: Graphs
+    'graphs-intro',
+    'graphs-problemas',
+    // Módulo 12: Recursion y Backtracking
+    'recursion-intro',
+    'backtracking-intro',
+    'backtracking-subsets',
+    'backtracking-permutations',
+    'backtracking-string',
+    'backtracking-matrix',
+    'backtracking-path',
+    'backtracking-optimization',
+    // Módulo 13: Dynamic Programming
+    'dp-intro',
+    'dp-problemas',
+    'dp-1d-patterns',
+    'dp-2d-patterns',
+    'dp-knapsack',
+    'dp-coin-change',
+    'dp-subsequences',
+    'dp-strings',
+    'dp-matrix',
+    'dp-intervals',
+    'dp-state-machine',
+    'dp-bitmask',
+    'dp-digit',
+    'dp-trees',
+    // Módulo 14: Binary Search
+    'binary-search-intro',
+    // Módulo 15: Sorting
+    'sorting-intro',
+    // Módulo 16: Advanced Graphs
+    'advanced-graphs-intro',
+    // Módulo 17: Tries
+    'tries-intro',
+    // Módulo 18: Interview Prep
+    'interview-prep-intro',
   ];
 
   const getTotalProgress = (): number => {

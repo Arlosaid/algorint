@@ -48,6 +48,9 @@ const InterviewModePage: React.FC = () => {
   const [feedback, setFeedback] = useState<any>(null);
   const [showTips, setShowTips] = useState(true);
   const [testResults, setTestResults] = useState<any[]>([]);
+  const [isRunning, setIsRunning] = useState(false); // Ejecutando código (sin enviar)
+  const [runResults, setRunResults] = useState<any[] | null>(null); // Resultados de ejecución parcial
+  const [showRunPanel, setShowRunPanel] = useState(false);
   
   // Sistema de hints
   const [hintsUsed, setHintsUsed] = useState<number[]>([]); // índices de hints usados
@@ -158,6 +161,54 @@ const InterviewModePage: React.FC = () => {
     setIsPaused(!isPaused);
   };
 
+  // Ejecutar código contra tests visibles SIN terminar la entrevista
+  const handleRunCode = async () => {
+    setIsRunning(true);
+    setShowRunPanel(true);
+    setRunResults(null);
+
+    try {
+      // Solo enviar test cases visibles
+      const visibleTests = currentProblem?.testCases
+        ?.filter((tc: any) => !tc.isHidden)
+        ?.map((tc: any) => ({
+          input: tc.input,
+          expected: tc.expected,
+          isHidden: false
+        })) || [];
+
+      const response = await fetch('http://localhost:8000/api/v1/code/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: code,
+          functionName: currentProblem?.functionName || extractFunctionName(code),
+          testCases: visibleTests,
+          timeout: 5
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const results = result.testResults.map((tr: any) => ({
+        passed: tr.passed,
+        input: JSON.stringify(tr.input),
+        expected: JSON.stringify(tr.expected),
+        actual: JSON.stringify(tr.actual),
+        error: tr.error
+      }));
+      setRunResults(results);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      setRunResults([{ passed: false, input: '-', expected: '-', actual: '-', error: errorMsg }]);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   const handleFinish = async () => {
     console.log('🚀 Iniciando envío de código...');
     setIsFinished(true);
@@ -208,9 +259,10 @@ const InterviewModePage: React.FC = () => {
       setTestResults(results);
 
       // Generar feedback con resultados reales
-      setFeedback(generateFeedback(code, thinking, timeElapsed, pseudocode, hintsUsed, currentProblem?.starterCode, results));
-    } catch (error) {
-      console.error('❌ Error ejecutando código:', error);
+      setFeedback(generateFeedback(code, thinking, timeElapsed, timeLimit, pseudocode, hintsUsed, currentProblem?.starterCode, results));
+    } catch (error: unknown) {
+      console.error('Error ejecutando código:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       // Mostrar error al usuario
       setFeedback({
         score: 0,
@@ -219,7 +271,7 @@ const InterviewModePage: React.FC = () => {
         codeQuality: 0,
         timeManagement: 0,
         strengths: [],
-        improvements: [`Error al ejecutar el código: ${error.message || 'Error desconocido'}. Revisa la conexión con el servidor.`],
+        improvements: [`Error al ejecutar el código: ${errorMsg}. Revisa la conexión con el servidor.`],
         interviewTips: ['Asegúrate de que el servidor backend esté ejecutándose.'],
         recommendation: 'Hubo un error técnico. Inténtalo de nuevo.',
         totalHintPenalty: getTotalHintPenalty(),
@@ -248,6 +300,10 @@ const InterviewModePage: React.FC = () => {
     setFeedback(null);
     setHintsUsed([]);
     setShowHintConfirm(false);
+    setTestResults([]);
+    setRunResults(null);
+    setShowRunPanel(false);
+    setIsRunning(false);
   };
 
   // Vista de configuración inicial
@@ -378,6 +434,20 @@ const InterviewModePage: React.FC = () => {
             <h1 className="text-4xl font-bold text-white mb-2">
               Entrevista Completada
             </h1>
+            <p className="text-white font-medium mb-1">{currentProblem?.title}</p>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <DifficultyBadge difficulty={currentProblem?.difficulty} />
+              {currentProblem?.category && (
+                <span className="px-2 py-0.5 bg-secondary-500/15 text-secondary-400 text-xs rounded-full border border-secondary-500/30">
+                  {currentProblem.category}
+                </span>
+              )}
+              {currentProblem?.pattern && (
+                <span className="px-2 py-0.5 bg-primary-500/15 text-primary-400 text-xs rounded-full border border-primary-500/30">
+                  {currentProblem.pattern}
+                </span>
+              )}
+            </div>
             <p className="text-dark-400">
               Tiempo: {formatTime(timeElapsed)} / {formatTime(timeLimit)}
             </p>
@@ -407,7 +477,8 @@ const InterviewModePage: React.FC = () => {
 
           {/* Detailed scores */}
           <Card className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Evaluación del Código</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Evaluación Detallada</h3>
+            <p className="text-dark-500 text-xs mb-4">Ponderación: Correctitud 40% | Eficiencia 25% | Calidad 20% | Tiempo 15%</p>
             <div className="space-y-4">
               {[
                 { label: 'Correctitud', value: feedback.correctness, icon: CheckCircle },
@@ -431,6 +502,55 @@ const InterviewModePage: React.FC = () => {
               ))}
             </div>
           </Card>
+
+          {/* Test Results */}
+          {testResults.length > 0 && (
+            <Card className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Target className="text-secondary-400" size={20} />
+                Resultados de Tests
+                <span className="text-sm font-normal text-dark-400 ml-2">
+                  {testResults.filter((r: any) => r.passed).length}/{testResults.length} pasados
+                </span>
+              </h3>
+              <div className="space-y-2">
+                {testResults.map((result: any, i: number) => (
+                  <div key={i} className={`p-3 rounded-lg border text-sm ${
+                    result.passed 
+                      ? 'bg-green-500/10 border-green-500/30' 
+                      : 'bg-red-500/10 border-red-500/30'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {result.passed ? (
+                        <CheckCircle size={16} className="text-green-400 flex-shrink-0" />
+                      ) : (
+                        <AlertTriangle size={16} className="text-red-400 flex-shrink-0" />
+                      )}
+                      <span className={`font-medium ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
+                        Test {i + 1}: {result.passed ? 'Pasado' : 'Fallido'}
+                      </span>
+                      {result.expected === '[Oculto]' && (
+                        <span className="text-dark-500 text-xs">(oculto)</span>
+                      )}
+                    </div>
+                    {!result.passed && result.expected !== '[Oculto]' && (
+                      <div className="mt-2 ml-6 space-y-1 text-xs text-dark-400">
+                        {result.error ? (
+                          <p className="text-red-300 font-mono">{result.error}</p>
+                        ) : (
+                          <>
+                            <p>Input: <span className="text-dark-300 font-mono">{result.input}</span></p>
+                            <p>Esperado: <span className="text-green-300 font-mono">{result.expected}</span></p>
+                            <p>Obtenido: <span className="text-red-300 font-mono">{result.actual}</span></p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* Interview Tips - Coaching section */}
           {feedback.interviewTips && feedback.interviewTips.length > 0 && (
@@ -530,6 +650,17 @@ const InterviewModePage: React.FC = () => {
               </Button>
 
               <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleRunCode}
+                disabled={isRunning || isFinished}
+                className={isRunning ? "opacity-50" : ""}
+              >
+                <Play size={18} />
+                {isRunning ? "Ejecutando..." : "Ejecutar"}
+              </Button>
+
+              <Button 
                 variant="primary" 
                 size="sm"
                 onClick={handleFinish}
@@ -571,67 +702,24 @@ const InterviewModePage: React.FC = () => {
                 <Target size={16} className="text-primary-400" />
                 Problema
               </h2>
+              {/* Tags de categoría y patrón */}
+              {(currentProblem?.category || currentProblem?.pattern) && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {currentProblem?.category && (
+                    <span className="px-2 py-0.5 bg-secondary-500/15 text-secondary-400 text-xs rounded-full border border-secondary-500/30">
+                      {currentProblem.category}
+                    </span>
+                  )}
+                  {currentProblem?.pattern && (
+                    <span className="px-2 py-0.5 bg-primary-500/15 text-primary-400 text-xs rounded-full border border-primary-500/30">
+                      {currentProblem.pattern}
+                    </span>
+                  )}
+                </div>
+              )}
               <p className="text-dark-300 text-sm leading-relaxed whitespace-pre-line">
                 {currentProblem?.description}
               </p>
-            </section>
-
-            {/* Sección de Hints - Movida arriba para mayor visibilidad */}
-            <section className="bg-accent-500/5 border border-accent-500/20 rounded-lg p-4 mb-4">
-              <h2 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
-                <Lightbulb size={16} className="text-accent-400" />
-                Pistas
-                {hintsUsed.length > 0 && (
-                  <span className="text-xs text-dark-500">
-                    ({hintsUsed.length}/{currentProblem?.hints?.length || 3} usadas)
-                  </span>
-                )}
-              </h2>
-
-              {/* Hints ya revelados */}
-              {hintsUsed.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  {hintsUsed.map((hintIdx) => (
-                    <div key={hintIdx} className="p-2 bg-accent-500/10 border border-accent-500/30 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-accent-400 text-xs font-medium">
-                          Pista {hintIdx + 1}
-                        </span>
-                        <span className="text-dark-500 text-xs">
-                          (-{getHintPenalty(hintIdx)} pts)
-                        </span>
-                      </div>
-                      <p className="text-dark-300 text-xs">
-                        {currentProblem?.hints?.[hintIdx]}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Botón para pedir hint */}
-              {currentProblem?.hints && hintsUsed.length < currentProblem.hints.length ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full bg-accent-500/20 border-2 border-accent-500/50 hover:bg-accent-500/30 text-accent-300 font-semibold shadow-lg animate-pulse"
-                  onClick={handleRequestHint}
-                >
-                  <HelpCircle size={16} className="mr-2" />
-                  💡 Pedir pista (-{getHintPenalty(hintsUsed.length)} pts)
-                </Button>
-              ) : hintsUsed.length > 0 ? (
-                <p className="text-dark-500 text-xs text-center bg-dark-800/50 p-2 rounded">
-                  ✅ Has usado todas las pistas disponibles
-                </p>
-              ) : null}
-
-              {/* Penalización total */}
-              {hintsUsed.length > 0 && (
-                <p className="text-dark-500 text-xs mt-2 text-center">
-                  Penalización total: -{getTotalHintPenalty()} puntos
-                </p>
-              )}
             </section>
 
             <section>
@@ -701,18 +789,24 @@ const InterviewModePage: React.FC = () => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="w-full bg-accent-500/20 border-2 border-accent-500/50 hover:bg-accent-500/30 text-accent-300 font-semibold shadow-lg animate-pulse"
+                  className="w-full bg-accent-500/20 border-2 border-accent-500/50 hover:bg-accent-500/30 text-accent-300 font-semibold shadow-lg"
                   onClick={handleRequestHint}
                 >
                   <HelpCircle size={16} className="mr-2" />
-                  💡 Pedir pista (-{getHintPenalty(hintsUsed.length)} pts)
+                  Pedir pista (-{getHintPenalty(hintsUsed.length)} pts)
                 </Button>
               ) : hintsUsed.length > 0 ? (
                 <p className="text-dark-500 text-xs text-center bg-dark-800/50 p-2 rounded">
-                  ✅ Has usado todas las pistas disponibles
+                  Has usado todas las pistas disponibles
                 </p>
               ) : null}
 
+              {/* Penalización total */}
+              {hintsUsed.length > 0 && (
+                <p className="text-dark-500 text-xs mt-2 text-center">
+                  Penalización total: -{getTotalHintPenalty()} puntos
+                </p>
+              )}
             </section>
           </div>
         </div>
@@ -820,7 +914,7 @@ const InterviewModePage: React.FC = () => {
           </div>
 
           {/* Editor */}
-          <div className="flex-1">
+          <div className={showRunPanel ? "h-[60%]" : "flex-1"}>
             <Editor
               height="100%"
               defaultLanguage="python"
@@ -835,6 +929,73 @@ const InterviewModePage: React.FC = () => {
               }}
             />
           </div>
+
+          {/* Panel de resultados de ejecución */}
+          {showRunPanel && (
+            <div className="h-[40%] border-t border-dark-700 bg-dark-800 overflow-y-auto">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-dark-700">
+                <span className="text-dark-300 text-sm font-medium flex items-center gap-2">
+                  <Target size={14} className="text-secondary-400" />
+                  Resultados de Ejecución
+                </span>
+                <button
+                  onClick={() => setShowRunPanel(false)}
+                  className="text-dark-500 hover:text-dark-300 text-xs"
+                >
+                  Cerrar
+                </button>
+              </div>
+              <div className="p-3 space-y-2">
+                {isRunning ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-500 border-t-transparent" />
+                    <span className="ml-3 text-dark-400 text-sm">Ejecutando tests...</span>
+                  </div>
+                ) : runResults ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`text-sm font-medium ${
+                        runResults.every((r: any) => r.passed) ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {runResults.filter((r: any) => r.passed).length}/{runResults.length} tests pasados
+                      </span>
+                    </div>
+                    {runResults.map((result: any, i: number) => (
+                      <div key={i} className={`p-2 rounded-lg border text-xs ${
+                        result.passed 
+                          ? 'bg-green-500/10 border-green-500/30' 
+                          : 'bg-red-500/10 border-red-500/30'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {result.passed ? (
+                            <CheckCircle size={14} className="text-green-400" />
+                          ) : (
+                            <AlertTriangle size={14} className="text-red-400" />
+                          )}
+                          <span className={result.passed ? 'text-green-400' : 'text-red-400'}>
+                            Test {i + 1}: {result.passed ? 'Pasado' : 'Fallido'}
+                          </span>
+                        </div>
+                        {!result.passed && (
+                          <div className="ml-6 space-y-1 text-dark-400">
+                            {result.error ? (
+                              <p className="text-red-300 font-mono">{result.error}</p>
+                            ) : (
+                              <>
+                                <p>Input: <span className="text-dark-300 font-mono">{result.input}</span></p>
+                                <p>Esperado: <span className="text-green-300 font-mono">{result.expected}</span></p>
+                                <p>Obtenido: <span className="text-red-300 font-mono">{result.actual}</span></p>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -845,7 +1006,7 @@ const InterviewModePage: React.FC = () => {
 // HELPER FUNCTIONS
 // ============================================
 
-function generateFeedback(code: string, thinking: string, timeElapsed: number, pseudocode?: string, hintsUsed: number[] = [], starterCode?: string, testResults?: any[]) {
+function generateFeedback(code: string, thinking: string, timeElapsed: number, timeLimit: number, pseudocode?: string, hintsUsed: number[] = [], starterCode?: string, testResults?: any[]) {
   // ============================================
   // EVALUACIÓN INTELIGENTE DE CÓDIGO
   // ============================================
@@ -855,7 +1016,7 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, p
   
   const hasThinking = thinking.length > 50;
   const hasPseudocode = (pseudocode?.length || 0) > 30;
-  const timeUsedPercent = (timeElapsed / (45 * 60)) * 100;
+  const timeUsedPercent = (timeElapsed / timeLimit) * 100;
   
   // Calcular penalización por hints
   const hintPenalties = [10, 10, 10, 10]; // 10 puntos por pista
@@ -885,20 +1046,40 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, p
     const totalTests = testResults.length;
     correctness = Math.floor((testsPassed / totalTests) * 100);
     
-    // Si todos los tests pasan, dar score perfecto
     if (correctness === 100) {
-      efficiency = 100;
-      codeQuality = 100;
-      timeManagement = 100; // Sin penalización por tiempo si pasa todos los tests
+      // Todos los tests pasan: evaluar calidad real del código y proceso
+      
+      // Eficiencia: analizar patrones algorítmicos usados
+      const efficiencyBase = 70; // Base por pasar todos los tests
+      const patternBonus = codeAnalysis.patternScore * 20; // Hasta +20 por patrones óptimos
+      const dsBonus = codeAnalysis.hasDataStructure ? 10 : 0; // +10 por usar estructuras adecuadas
+      efficiency = Math.min(100, Math.floor(efficiencyBase + patternBonus + dsBonus));
+      
+      // Calidad de código: evaluar estructura, legibilidad
+      const qualityBase = 65;
+      const structureBonus = codeAnalysis.structureScore * 15;
+      const syntaxBonus = codeAnalysis.syntaxScore * 10;
+      const pseudocodeBonus = hasPseudocode ? 5 : 0;
+      const thinkingBonus = hasThinking ? 5 : 0;
+      codeQuality = Math.min(100, Math.floor(qualityBase + structureBonus + syntaxBonus + pseudocodeBonus + thinkingBonus));
+      
+      // Manejo del tiempo: evaluar según porcentaje usado
+      if (timeUsedPercent <= 40) {
+        timeManagement = 100; // Excelente manejo del tiempo
+      } else if (timeUsedPercent <= 60) {
+        timeManagement = 90; // Buen manejo
+      } else if (timeUsedPercent <= 80) {
+        timeManagement = 75; // Aceptable
+      } else {
+        timeManagement = 60; // Apurado
+      }
     } else {
       // Cuando NO pasan todos los tests, verificar si se escribió código
-      const codeAnalysis = analyzeCodeQuality(codeWritten, code);
-      
       if (codeAnalysis.isEmpty) {
         // No se escribió código: score muy bajo
         efficiency = 0;
         codeQuality = 0;
-        timeManagement = 50; // Penalización por no intentar
+        timeManagement = 50;
       } else {
         // Se escribió código pero no pasa todos los tests: usar heurística
         if (codeAnalysis.isGarbage) {
@@ -914,7 +1095,7 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, p
         
         efficiency = Math.min(100, Math.floor(efficiency));
         codeQuality = Math.min(100, Math.floor(codeQuality));
-        timeManagement = timeUsedPercent < 20 ? 90 : timeUsedPercent < 70 ? 95 : 85;
+        timeManagement = timeUsedPercent < 20 ? 90 : timeUsedPercent < 70 ? 85 : 70;
       }
     }
   } else {
@@ -944,41 +1125,29 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, p
     codeQuality = Math.min(100, Math.floor(codeQuality));
   }
 
-  // Calcular timeManagement - menos impacto, solo como cronómetro
-  if (correctness === 100) {
-    timeManagement = 100; // Sin penalización por tiempo si pasa todos los tests
-  } else {
-    // Penalización mínima por tiempo cuando no pasa tests
-    timeManagement = timeUsedPercent < 20 ? 90 : timeUsedPercent < 70 ? 95 : 85;
-  }
-
   // Limitar a 100
   correctness = Math.min(100, Math.floor(correctness));
   efficiency = Math.min(100, Math.floor(efficiency));
   codeQuality = Math.min(100, Math.floor(codeQuality));
   timeManagement = Math.min(100, Math.floor(timeManagement));
 
-  // Score final - diferenciar entre no pasar tests vs no escribir código
-  let score: number;
+  // Score final ponderado: correctitud es lo más importante
+  // Correctitud 40%, Eficiencia 25%, Calidad 20%, Tiempo 15%
   let rawScore: number;
-  if (correctness === 100) {
-    rawScore = 100;
-    score = 100 - totalHintPenalty;
+  let score: number;
+  
+  if (codeAnalysis.isEmpty) {
+    rawScore = 0;
+    score = Math.max(0, 5 - totalHintPenalty);
   } else {
-    const codeAnalysis = analyzeCodeQuality(codeWritten, code);
-    if (codeAnalysis.isEmpty) {
-      // No se escribió código: score muy bajo
-      rawScore = 0;
-      score = Math.max(0, 5 - totalHintPenalty); // Máximo 5 puntos si no usó hints
-    } else {
-      // Se escribió código pero no pasa todos los tests
-      const timePenalty = timeUsedPercent > 70 ? 5 : 0;
-      rawScore = Math.floor((correctness + efficiency + codeQuality + timeManagement) / 4);
-      score = Math.max(0, rawScore - totalHintPenalty - timePenalty);
-    }
+    rawScore = Math.floor(
+      correctness * 0.40 + 
+      efficiency * 0.25 + 
+      codeQuality * 0.20 + 
+      timeManagement * 0.15
+    );
+    score = Math.max(0, rawScore - totalHintPenalty);
   }
-
-  console.log('📈 Scores:', { correctness, efficiency, codeQuality, timeManagement, totalHintPenalty, isEmptyCode: analyzeCodeQuality(codeWritten, code).isEmpty, timePenalty: correctness === 100 ? 0 : (timeUsedPercent > 70 ? 5 : 0), finalScore: score });
 
   // ============================================
   // GENERAR FEEDBACK CONTEXTUAL
@@ -1247,6 +1416,8 @@ const interviewProblems = [
     id: 'two-sum-interview',
     title: 'Two Sum',
     difficulty: 'easy' as const,
+    category: 'Hash Table',
+    pattern: 'Hashing',
     description: `Dado un array de enteros nums y un entero target, retorna los índices de los dos números que suman target.
 
 Puedes asumir que cada input tiene exactamente una solución, y no puedes usar el mismo elemento dos veces.`,
@@ -1280,6 +1451,8 @@ Puedes asumir que cada input tiene exactamente una solución, y no puedes usar e
     id: 'valid-parentheses',
     title: 'Valid Parentheses',
     difficulty: 'easy' as const,
+    category: 'Stack',
+    pattern: 'Stack',
     description: `Dado un string s que contiene solo los caracteres '(', ')', '{', '}', '[' y ']', determina si el string es válido.
 
 Un string es válido si:
@@ -1318,6 +1491,8 @@ Un string es válido si:
     id: 'reverse-linked-list',
     title: 'Reverse Linked List',
     difficulty: 'easy' as const,
+    category: 'Linked List',
+    pattern: 'In-Place Reversal',
     description: `Dada la cabeza de una lista enlazada simple, invierte la lista y retorna la nueva cabeza.`,
     examples: [
       { input: 'head = [1,2,3,4,5]', output: '[5,4,3,2,1]' },
@@ -1353,6 +1528,8 @@ def reverse_list(head: ListNode) -> ListNode:
     id: 'max-subarray',
     title: 'Maximum Subarray',
     difficulty: 'easy' as const,
+    category: 'Array',
+    pattern: 'Dynamic Programming (Kadane)',
     description: `Dado un array de enteros nums, encuentra el subarray contiguo con la suma más grande y retorna esa suma.`,
     examples: [
       { input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6 (subarray [4,-1,2,1])' },
@@ -1384,6 +1561,8 @@ def reverse_list(head: ListNode) -> ListNode:
     id: 'merge-sorted-arrays',
     title: 'Merge Sorted Array',
     difficulty: 'easy' as const,
+    category: 'Array',
+    pattern: 'Two Pointers',
     description: `Dados dos arrays ordenados nums1 y nums2, combínalos en un solo array ordenado.
 
 nums1 tiene espacio suficiente al final para contener todos los elementos.`,
@@ -1404,17 +1583,19 @@ nums1 tiene espacio suficiente al final para contener todos los elementos.`,
     pass`,
     functionName: 'merge',
     testCases: [
-      { input: { nums1: [1, 2, 3, 0, 0, 0], m: 3, nums2: [2, 5, 6], n: 3 }, expected: null, isHidden: false },
-      { input: { nums1: [1], m: 1, nums2: [], n: 0 }, expected: null, isHidden: false },
-      { input: { nums1: [0], m: 0, nums2: [1], n: 1 }, expected: null, isHidden: false },
-      { input: { nums1: [2, 0], m: 1, nums2: [1], n: 1 }, expected: null, isHidden: true },
-      { input: { nums1: [4, 5, 6, 0, 0, 0], m: 3, nums2: [1, 2, 3], n: 3 }, expected: null, isHidden: true },
+      { input: { nums1: [1, 2, 3, 0, 0, 0], m: 3, nums2: [2, 5, 6], n: 3 }, expected: [1, 2, 2, 3, 5, 6], isHidden: false },
+      { input: { nums1: [1], m: 1, nums2: [], n: 0 }, expected: [1], isHidden: false },
+      { input: { nums1: [0], m: 0, nums2: [1], n: 1 }, expected: [1], isHidden: false },
+      { input: { nums1: [2, 0], m: 1, nums2: [1], n: 1 }, expected: [1, 2], isHidden: true },
+      { input: { nums1: [4, 5, 6, 0, 0, 0], m: 3, nums2: [1, 2, 3], n: 3 }, expected: [1, 2, 3, 4, 5, 6], isHidden: true },
     ],
   },
   {
     id: 'best-time-buy-sell',
     title: 'Best Time to Buy and Sell Stock',
     difficulty: 'easy' as const,
+    category: 'Array',
+    pattern: 'Greedy / Sliding Window',
     description: `Dado un array prices donde prices[i] es el precio de una acción en el día i.
 
 Quieres maximizar tu ganancia eligiendo un día para comprar y otro día futuro para vender.
@@ -1452,6 +1633,8 @@ Retorna la máxima ganancia posible. Si no hay ganancia posible, retorna 0.`,
     id: 'longest-substring-interview',
     title: 'Longest Substring Without Repeating Characters',
     difficulty: 'medium' as const,
+    category: 'String',
+    pattern: 'Sliding Window',
     description: `Dado un string s, encuentra la longitud de la subcadena más larga sin caracteres repetidos.`,
     examples: [
       { input: 's = "abcabcbb"', output: '3' },
@@ -1483,6 +1666,8 @@ Retorna la máxima ganancia posible. Si no hay ganancia posible, retorna 0.`,
     id: 'merge-intervals-interview',
     title: 'Merge Intervals',
     difficulty: 'medium' as const,
+    category: 'Array',
+    pattern: 'Sorting + Intervals',
     description: `Dado un array de intervalos donde intervals[i] = [start_i, end_i], combina todos los intervalos que se solapan y retorna un array de intervalos que no se solapan.`,
     examples: [
       { input: 'intervals = [[1,3],[2,6],[8,10],[15,18]]', output: '[[1,6],[8,10],[15,18]]' },
@@ -1512,6 +1697,8 @@ Retorna la máxima ganancia posible. Si no hay ganancia posible, retorna 0.`,
     id: '3sum-interview',
     title: '3Sum',
     difficulty: 'medium' as const,
+    category: 'Array',
+    pattern: 'Two Pointers',
     description: `Dado un array de enteros nums, retorna todos los tripletes [nums[i], nums[j], nums[k]] tal que i != j, i != k, j != k, y nums[i] + nums[j] + nums[k] == 0.
 
 La solución no debe contener tripletes duplicados.`,
@@ -1544,6 +1731,8 @@ La solución no debe contener tripletes duplicados.`,
     id: 'product-except-self',
     title: 'Product of Array Except Self',
     difficulty: 'medium' as const,
+    category: 'Array',
+    pattern: 'Prefix/Suffix',
     description: `Dado un array nums, retorna un array answer donde answer[i] es el producto de todos los elementos de nums excepto nums[i].
 
 Debes hacerlo en O(n) sin usar división.`,
@@ -1576,6 +1765,8 @@ Debes hacerlo en O(n) sin usar división.`,
     id: 'container-water',
     title: 'Container With Most Water',
     difficulty: 'medium' as const,
+    category: 'Array',
+    pattern: 'Two Pointers',
     description: `Dado un array height de n enteros, donde height[i] representa la altura de una línea vertical.
 
 Encuentra dos líneas que junto con el eje X formen un contenedor que almacene la mayor cantidad de agua.`,
@@ -1608,6 +1799,8 @@ Encuentra dos líneas que junto con el eje X formen un contenedor que almacene l
     id: 'coin-change',
     title: 'Coin Change',
     difficulty: 'medium' as const,
+    category: 'Dynamic Programming',
+    pattern: 'Bottom-Up DP',
     description: `Dado un array de monedas de diferentes denominaciones y un monto total, retorna el número mínimo de monedas necesarias para formar ese monto.
 
 Si no es posible formar el monto, retorna -1.`,
@@ -1641,6 +1834,8 @@ Si no es posible formar el monto, retorna -1.`,
     id: 'lru-cache',
     title: 'LRU Cache',
     difficulty: 'medium' as const,
+    category: 'Design',
+    pattern: 'Hash Map + Doubly Linked List',
     description: `Diseña una estructura de datos que siga las restricciones de un cache LRU (Least Recently Used).
 
 Implementa la clase LRUCache:
@@ -1683,6 +1878,8 @@ Implementa la clase LRUCache:
     id: 'group-anagrams',
     title: 'Group Anagrams',
     difficulty: 'medium' as const,
+    category: 'String',
+    pattern: 'Hashing',
     description: `Dado un array de strings, agrupa los anagramas juntos. Puedes retornar la respuesta en cualquier orden.
 
 Un anagrama es una palabra formada reordenando las letras de otra palabra.`,
@@ -1717,6 +1914,8 @@ Un anagrama es una palabra formada reordenando las letras de otra palabra.`,
     id: 'trapping-rain-water-interview',
     title: 'Trapping Rain Water',
     difficulty: 'hard' as const,
+    category: 'Array',
+    pattern: 'Two Pointers',
     description: `Dado n enteros no negativos representando un mapa de elevación donde el ancho de cada barra es 1, calcula cuánta agua puede atrapar después de llover.`,
     examples: [
       { input: 'height = [0,1,0,2,1,0,1,3,2,1,2,1]', output: '6' },
@@ -1738,15 +1937,17 @@ Un anagrama es una palabra formada reordenando las letras de otra palabra.`,
     testCases: [
       { input: { height: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1] }, expected: 6, isHidden: false },
       { input: { height: [4, 2, 0, 3, 2, 5] }, expected: 9, isHidden: false },
-      { input: { height: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1] }, expected: 6, isHidden: false },
-      { input: { height: [3, 0, 2, 0, 4] }, expected: 7, isHidden: true },
-      { input: { height: [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1] }, expected: 6, isHidden: true },
+      { input: { height: [3, 0, 2, 0, 4] }, expected: 7, isHidden: false },
+      { input: { height: [1, 0, 1] }, expected: 1, isHidden: true },
+      { input: { height: [5, 4, 1, 2] }, expected: 1, isHidden: true },
     ],
   },
   {
     id: 'median-two-sorted',
     title: 'Median of Two Sorted Arrays',
     difficulty: 'hard' as const,
+    category: 'Array',
+    pattern: 'Binary Search',
     description: `Dados dos arrays ordenados nums1 y nums2, retorna la mediana de los dos arrays combinados.
 
 La complejidad debe ser O(log(m+n)).`,
@@ -1779,6 +1980,8 @@ La complejidad debe ser O(log(m+n)).`,
     id: 'merge-k-sorted',
     title: 'Merge k Sorted Lists',
     difficulty: 'hard' as const,
+    category: 'Linked List / Heap',
+    pattern: 'Min Heap',
     description: `Dado un array de k listas enlazadas ordenadas, combínalas en una sola lista enlazada ordenada y retorna su cabeza.`,
     examples: [
       { input: 'lists = [[1,4,5],[1,3,4],[2,6]]', output: '[1,1,2,3,4,4,5,6]' },
@@ -1814,6 +2017,8 @@ def merge_k_lists(lists: list[ListNode]) -> ListNode:
     id: 'word-ladder',
     title: 'Word Ladder',
     difficulty: 'hard' as const,
+    category: 'Graph',
+    pattern: 'BFS',
     description: `Dado beginWord, endWord, y un diccionario wordList, retorna la longitud de la secuencia de transformación más corta de beginWord a endWord.
 
 Reglas:
@@ -1848,6 +2053,8 @@ Reglas:
     id: 'alien-dictionary',
     title: 'Alien Dictionary',
     difficulty: 'hard' as const,
+    category: 'Graph',
+    pattern: 'Topological Sort',
     description: `Hay un nuevo lenguaje alienígena que usa letras del alfabeto inglés pero en orden diferente.
 
 Dado un diccionario de palabras ordenadas según ese lenguaje, deriva el orden de las letras.
@@ -1883,6 +2090,8 @@ Si no existe orden válido, retorna "".`,
     id: 'serialize-binary-tree',
     title: 'Serialize and Deserialize Binary Tree',
     difficulty: 'hard' as const,
+    category: 'Tree',
+    pattern: 'DFS / BFS',
     description: `Diseña un algoritmo para serializar y deserializar un árbol binario.
 
 No hay restricción en cómo debe funcionar la serialización/deserialización, solo que un árbol pueda ser serializado a un string y luego deserializado al mismo árbol.`,
