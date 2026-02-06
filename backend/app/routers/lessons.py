@@ -1353,96 +1353,285 @@ def sum_formula(n):                # O(1)
         difficulty=Difficulty.EASY,
         estimatedMinutes=55,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina que estás en un pasillo largo con puertas numeradas del 1 al 100. Buscas dos puertas cuyos números sumen exactamente 50. ¿Revisarías cada par posible? ¡Eso tomaría para siempre! En cambio, pon a un amigo en la puerta 1 y a otro en la puerta 100. Si la suma es mayor que 50, el amigo de la derecha se mueve a la izquierda. Si es menor, el de la izquierda avanza. Cada vez eliminan muchas posibilidades de golpe. Eso es Two Pointers: dos 'dedos' moviéndose inteligentemente por los datos para evitar revisar todas las combinaciones.""",
+        visual_diagram="""## Variantes de Two Pointers
+
+### 1. Punteros Opuestos (se acercan)
+
+```
+  [ 1 ]  [ 2 ]  [ 3 ]  [ 4 ]  [ 5 ]  [ 6 ]  [ 7 ]
+    ^                                           ^
+   left  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ►       right
+    >>>                                    <<<
+```
+
+**Uso:** Two Sum, Palindrome, Container Water
+
+---
+
+### 2. Punteros Misma Direccion (slow/fast)
+
+```
+  [ 1 ]  [ 1 ]  [ 2 ]  [ 2 ]  [ 3 ]  [ 4 ]  [ 4 ]
+    ^                     ^
+   slow                  fast  ─ ─ ─ ─ ─ ─ ─ ─ ►
+```
+
+**Uso:** Remove Duplicates, Move Zeros, Particion
+
+---
+
+### 3. Punteros Desde el Inicio (dos arrays)
+
+```
+  Array A: [ 1, 3, 5, 7 ]     Array B: [ 2, 4, 6, 8 ]
+             ^                            ^
+            i ──►                        j ──►
+```
+
+**Uso:** Merge Sorted Arrays, Interseccion
+
+---
+
+| Variante | Inicio | Movimiento | Complejidad |
+|----------|--------|------------|-------------|
+| Opuestos | Extremos | Se acercan al centro | O(n) |
+| Slow/Fast | Mismo lado | Misma direccion, distinta velocidad | O(n) |
+| Dos arrays | Inicio de cada array | Avanzan segun condicion | O(n + m) |
+""",
+        core_code_snippet="""# TEMPLATE: Two Pointers - Punteros Opuestos
+def two_pointer_opposite(arr, target):
+    left, right = 0, len(arr) - 1
+    
+    while left < right:
+        current = arr[left] + arr[right]
+        if current == target:
+            return [left, right]
+        elif current < target:
+            left += 1    # Necesitamos más
+        else:
+            right -= 1   # Necesitamos menos
+    return []
+
+# TEMPLATE: Two Pointers - Slow/Fast
+def two_pointer_same_dir(arr):
+    slow = 0
+    for fast in range(len(arr)):
+        if condicion(arr[fast]):  # Si el elemento es válido
+            arr[slow] = arr[fast]
+            slow += 1
+    return slow  # Nuevo tamaño""",
         content=[
             ContentBlock(
                 type="text",
                 content="""# Técnica Two Pointers
 
-La técnica de dos punteros es una de las más versátiles en algoritmos. Consiste en usar dos índices que se mueven por el array de manera estratégica.
+La técnica de dos punteros es una de las más versátiles y frecuentes en entrevistas técnicas. Consiste en usar **dos índices** que se mueven por el array de manera estratégica, eliminando la necesidad de bucles anidados.
 
-## Cuándo usar Two Pointers
+## ¿Por qué es tan importante?
 
-- Array ordenado y buscas pares/tripletas
-- Necesitas comparar elementos en diferentes posiciones
-- Problemas de palíndromos
-- Remover duplicados in-place
-- Merge de arrays ordenados"""
+Two Pointers aparece en **~30% de los problemas de arrays** en entrevistas FAANG. Es la primera técnica que deberías dominar porque:
+
+1. **Reduce complejidad**: Convierte O(n²) en O(n)
+2. **Es intuitiva**: Una vez entiendes el patrón, lo aplicas en muchas variantes
+3. **Usa O(1) espacio**: No necesitas estructuras de datos extra"""
             ),
             ContentBlock(
                 type="text",
-                content="""## Variantes Principales
+                content="""## ¿Cuándo usar Two Pointers?
 
-### 1. Punteros Opuestos (desde los extremos)
-```
-[1, 2, 3, 4, 5, 6, 7]
- ^                 ^
-left             right
-```
-Usados para: Two Sum en array ordenado, Container With Most Water, Valid Palindrome.
+Hazte estas preguntas al ver un problema:
 
-### 2. Punteros en la Misma Dirección (slow/fast)
-```
-[1, 1, 2, 2, 3, 4, 4]
- ^
-slow
- ^
-fast
-```
-Usados para: Remove Duplicates, Move Zeros, Floyd's Cycle Detection."""
+| Señal en el problema | Variante a usar |
+|---------------------|-----------------|
+| Array **ordenado** + buscar par/tripleta | Punteros opuestos |
+| **Remover/filtrar** elementos in-place | Slow/Fast |
+| Verificar **palíndromo** | Punteros opuestos |
+| **Merge** de arrays ordenados | Punteros independientes |
+| Encontrar **ciclos** en linked list | Fast/Slow (tortuga/liebre) |
+| Problemas de **partición** | Slow/Fast |
+
+### Regla de oro
+> Si el problema dice "in-place" u "O(1) espacio extra", piensa en Two Pointers."""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Variante 1: Punteros Opuestos
+
+Los punteros empiezan en los **extremos** y se acercan. Es como cerrar una pinza: vas descartando opciones por ambos lados.
+
+### Paso a paso: encontrar par que sume 9
+
+| Paso | Array | Left | Right | Suma | Accion |
+|------|-------|------|-------|------|--------|
+| 1 | `[1, 2, 4, 5, 7, 11]` | `L=0` (1) | `R=5` (11) | 12 | 12 > 9 → mover R |
+| 2 | `[1, 2, 4, 5, 7, 11]` | `L=0` (1) | `R=4` (7) | 8 | 8 < 9 → mover L |
+| 3 | `[1, 2, 4, 5, 7, 11]` | `L=1` (2) | `R=4` (7) | **9** | 9 = 9 → **Encontrado!** |
+
+> **¿Por que funciona?** Al mover `right` reducimos la suma (descartamos el mayor). Al mover `left` la aumentamos. Asi cubrimos todas las posibilidades relevantes sin revisar cada par."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Ejemplo 1: Two Sum en Array Ordenado
-# Array está ordenado - podemos usar two pointers
-
-def two_sum_sorted(nums, target):
+                content='''# Two Sum en Array Ordenado - El ejemplo clásico
+def two_sum_sorted(nums: list[int], target: int) -> list[int]:
+    """
+    Encuentra dos números en un array ORDENADO que sumen target.
+    
+    Estrategia: Punteros en extremos opuestos.
+    - Si la suma es muy grande → mover right (reducir)
+    - Si la suma es muy pequeña → mover left (aumentar)
+    
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
     left, right = 0, len(nums) - 1
     
     while left < right:
         current_sum = nums[left] + nums[right]
         
         if current_sum == target:
-            return [left, right]
+            return [left, right]        # ¡Encontrado!
         elif current_sum < target:
-            left += 1   # Necesitamos suma mayor
+            left += 1                   # Necesitamos suma mayor
         else:
-            right -= 1  # Necesitamos suma menor
+            right -= 1                  # Necesitamos suma menor
     
-    return []
+    return []  # No encontrado
 
-# Ejemplo
-print(two_sum_sorted([1, 2, 3, 4, 6], 6))  # [1, 3] (2+4=6)'''
+# Ejemplo paso a paso
+print(two_sum_sorted([1, 2, 3, 4, 6], 6))  # [1, 3] → 2+4=6'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="tp-q1",
+                    question="En el array ordenado [1, 3, 5, 7, 9] con target=10, ¿cuál es el primer movimiento de los punteros?",
+                    options=[
+                        "left se mueve a la derecha porque 1+9=10 ya es la respuesta",
+                        "right se mueve a la izquierda porque la suma 1+9=10 es igual al target",
+                        "Se retornan los índices [0, 4] porque 1+9=10",
+                        "left se mueve a la derecha porque 1+9 < 10"
+                    ],
+                    correct_index=2,
+                    explanation="¡Correcto! La suma 1+9=10 es exactamente el target, así que retornamos [0, 4] inmediatamente. No necesitamos mover ningún puntero.",
+                    difficulty="easy"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Variante 2: Punteros en la Misma Dirección (Slow/Fast)
+
+Aquí ambos punteros avanzan de izquierda a derecha, pero a **velocidades diferentes**:
+- `fast` recorre todo el array
+- `slow` solo avanza cuando encontramos algo útil
+
+### Analogía: La fila del cine
+
+Imagina una fila de personas donde algunas no tienen boleto. `fast` revisa a cada persona. Si tiene boleto, la mueve al frente donde está `slow`. Los sin boleto simplemente se quedan atrás.
+
+```
+Original:     [✓, ✗, ✓, ✗, ✗, ✓, ✓]
+Después:      [✓, ✓, ✓, ✓, ✗, ✗, ✗]
+               slow→         fast→
+```"""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Ejemplo 2: Remover Duplicados In-Place
-# Mantener solo elementos únicos al inicio del array
-
-def remove_duplicates(nums):
+                content='''# Remover Duplicados In-Place (Array Ordenado)
+def remove_duplicates(nums: list[int]) -> int:
+    """
+    Mantiene solo elementos únicos al inicio del array.
+    Retorna la nueva longitud.
+    
+    slow = posición donde escribir el siguiente único
+    fast = lee cada elemento
+    
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
     if not nums:
         return 0
     
-    slow = 0  # Último elemento único
+    slow = 0  # Último elemento único colocado
     
     for fast in range(1, len(nums)):
-        if nums[fast] != nums[slow]:
+        if nums[fast] != nums[slow]:  # ¡Encontré uno nuevo!
             slow += 1
-            nums[slow] = nums[fast]
+            nums[slow] = nums[fast]   # Lo coloco en su lugar
     
     return slow + 1  # Longitud del array sin duplicados
 
-# Ejemplo
-arr = [1, 1, 2, 2, 3, 4, 4]
-length = remove_duplicates(arr)
-print(arr[:length])  # [1, 2, 3, 4]'''
+# Paso a paso:
+# [1, 1, 2, 2, 3]
+#  s  f              → 1==1, fast avanza
+#  s     f           → 2!=1, slow avanza, copia → [1, 2, 2, 2, 3]
+#     s     f        → 2==2, fast avanza
+#     s        f     → 3!=2, slow avanza, copia → [1, 2, 3, 2, 3]
+# Resultado: los primeros 3 elementos = [1, 2, 3]'''
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Ejemplo 3: Valid Palindrome
-def is_palindrome(s):
+                content='''# Move Zeros - Mover ceros al final manteniendo orden
+def move_zeroes(nums: list[int]) -> None:
+    """
+    Mueve todos los 0 al final, manteniendo el orden relativo.
+    
+    Idea: slow marca dónde colocar el siguiente no-cero.
+    Fast recorre buscando no-ceros para moverlos al frente.
+    
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
+    slow = 0  # Posición para el siguiente no-cero
+    
+    for fast in range(len(nums)):
+        if nums[fast] != 0:
+            # Swap: mover el no-cero al frente
+            nums[slow], nums[fast] = nums[fast], nums[slow]
+            slow += 1
+
+# Ejemplo visual:
+# [0, 1, 0, 3, 12]
+#  s  f              → 1≠0, swap → [1, 0, 0, 3, 12], s=1
+#     s     f        → 3≠0, swap → [1, 3, 0, 0, 12], s=2
+#        s        f  → 12≠0, swap → [1, 3, 12, 0, 0], s=3 ✓'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="tp-q2",
+                    question="En la técnica slow/fast para remover duplicados, ¿qué pasa cuando fast encuentra un elemento igual al que está en slow?",
+                    options=[
+                        "Se intercambian slow y fast",
+                        "slow avanza una posición",
+                        "fast simplemente avanza sin hacer nada más",
+                        "Se elimina el elemento duplicado"
+                    ],
+                    correct_index=2,
+                    explanation="Cuando fast encuentra un duplicado (nums[fast] == nums[slow]), simplemente fast avanza al siguiente elemento. Solo cuando fast encuentra un valor DIFERENTE es que slow avanza y se copia el valor. Los duplicados se 'ignoran' y quedan sobrescritos.",
+                    difficulty="easy"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Variante 3: Valid Palindrome
+
+Un palíndromo se lee igual de izquierda a derecha. Los punteros opuestos son perfectos: compara los extremos y ve cerrando hacia el centro.
+
+### Truco para entrevistas
+Siempre pregunta: "¿Debo ignorar mayúsculas y caracteres especiales?" La respuesta suele ser sí, y eso lo manejas con `isalnum()` y `lower()`."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Valid Palindrome - Ignorando caracteres no alfanuméricos
+def is_palindrome(s: str) -> bool:
+    """
+    Verifica si un string es palíndromo.
+    Ignora caracteres no alfanuméricos y mayúsculas.
+    
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
     left, right = 0, len(s) - 1
     
     while left < right:
@@ -1452,6 +1641,7 @@ def is_palindrome(s):
         while left < right and not s[right].isalnum():
             right -= 1
         
+        # Comparar ignorando mayúsculas
         if s[left].lower() != s[right].lower():
             return False
         
@@ -1460,29 +1650,137 @@ def is_palindrome(s):
     
     return True
 
-# Ejemplo
-print(is_palindrome("A man, a plan, a canal: Panama"))  # True'''
+# "A man, a plan, a canal: Panama"
+#  ↓ limpiamos: "amanaplanacanalpanama"
+#  a...............a  → iguales ✓
+#   m.............m   → iguales ✓
+#    a...........a    → iguales ✓  ... hasta el centro'''
             ),
             ContentBlock(
                 type="info",
-                content="**Tip para entrevistas**: Two Pointers convierte muchos problemas O(n^2) en O(n). Siempre pregunta si el array está ordenado - es una pista para usar esta técnica."
+                content="**Tip para entrevistas**: Two Pointers convierte muchos problemas O(n²) en O(n). Siempre pregunta si el array está ordenado — es una pista fuerte para usar esta técnica. Si no está ordenado, considera si ordenarlo primero vale la pena (O(n log n) sigue siendo mejor que O(n²))."
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Errores Comunes (¡Evítalos!)
+
+### 1. Off-by-one en la condición del while
+```python
+# ❌ INCORRECTO: left <= right puede causar que compares un elemento consigo mismo
+while left <= right:
+
+# ✅ CORRECTO: left < right asegura que siempre comparas DOS elementos distintos
+while left < right:
+```
+
+### 2. Olvidar manejar el caso de array vacío
+```python
+# ❌ INCORRECTO: crashea con array vacío
+left, right = 0, len(nums) - 1  # right = -1!
+
+# ✅ CORRECTO: verificar primero
+if len(nums) < 2:
+    return default_value
+```
+
+### 3. No avanzar los punteros (loop infinito)
+```python
+# ❌ INCORRECTO: si no hay match, los punteros no se mueven
+while left < right:
+    if nums[left] + nums[right] == target:
+        return [left, right]
+    # ¿Y si no es igual? ¡Loop infinito!
+
+# ✅ CORRECTO: siempre mover al menos un puntero
+while left < right:
+    if total == target: return [left, right]
+    elif total < target: left += 1
+    else: right -= 1
+```"""
+            ),
+            ContentBlock(
+                type="warning",
+                content="**Cuidado con duplicados**: En problemas como 3Sum, debes saltar duplicados para evitar respuestas repetidas. Usa `while left < right and nums[left] == nums[left+1]: left += 1` después de encontrar una solución."
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Complejidad: ¿Por qué Two Pointers es O(n)?
+
+Muchos principiantes se confunden: "¿No hay un while dentro de otro while? ¿No es O(n²)?"
+
+La clave es contar **cuántas veces se mueven los punteros en total**:
+- `left` solo se mueve hacia la derecha (máximo n veces)
+- `right` solo se mueve hacia la izquierda (máximo n veces)
+- **Total de movimientos**: máximo 2n → O(n)
+
+Cada elemento se visita como máximo una vez por cada puntero. No es como un doble for donde cada iteración exterior recorre todo el array interior."""
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="tp-q3",
+                    question="¿Cuál es la complejidad temporal de Two Pointers en un array de tamaño n?",
+                    options=[
+                        "O(n²) porque hay un while dentro de lógica condicional",
+                        "O(n log n) porque necesitamos ordenar primero",
+                        "O(n) porque cada puntero recorre el array como máximo una vez",
+                        "O(1) porque solo usamos dos variables"
+                    ],
+                    correct_index=2,
+                    explanation="Correcto. Aunque parece que hay loops anidados, cada puntero se mueve como máximo n posiciones en total. El total de movimientos es 2n, que es O(n). La complejidad espacial es O(1) porque solo usamos dos variables de índice.",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Resumen: Checklist de Two Pointers
+
+Antes de implementar, responde:
+
+1. **¿Qué tipo de punteros necesito?**
+   - ¿Opuestos (extremos → centro)?
+   - ¿Misma dirección (slow/fast)?
+   - ¿Dos arrays (un puntero en cada uno)?
+
+2. **¿Cuándo muevo cada puntero?**
+   - Define claramente la condición para mover left, right, slow o fast
+
+3. **¿Cuándo me detengo?**
+   - `left < right` para opuestos
+   - `fast < len(arr)` para mismo sentido
+
+4. **¿Necesito el array ordenado?**
+   - Si es punteros opuestos buscando sumas → sí
+   - Si es slow/fast para filtrar → no necesariamente"""
             )
         ],
         codeExamples=[
             CodeExample(
                 title="Container With Most Water",
-                description="Encontrar el contenedor que almacena más agua",
-                code='''def max_area(height):
+                description="Encontrar el contenedor que almacena más agua. Punteros opuestos: empezamos con el ancho máximo y vamos reduciendo.",
+                code='''def max_area(height: list[int]) -> int:
+    """
+    Encuentra las dos líneas que forman el contenedor con más agua.
+    
+    ¿Por qué funciona mover el puntero de menor altura?
+    - El área = min(h[left], h[right]) × ancho
+    - Al mover cualquier puntero, el ancho DISMINUYE
+    - Si movemos el más alto, min() no puede mejorar
+    - Si movemos el más bajo, min() PODRÍA mejorar
+    
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
     left, right = 0, len(height) - 1
     max_water = 0
     
     while left < right:
-        # Área = ancho x altura mínima
+        # Calcular área actual
         width = right - left
         h = min(height[left], height[right])
-        max_water = max(max_water, width * h)
+        area = width * h
+        max_water = max(max_water, area)
         
-        # Mover el puntero de menor altura
+        # Mover el puntero con menor altura
         if height[left] < height[right]:
             left += 1
         else:
@@ -1490,37 +1788,52 @@ print(is_palindrome("A man, a plan, a canal: Panama"))  # True'''
     
     return max_water
 
-# Ejemplo
 print(max_area([1,8,6,2,5,4,8,3,7]))  # 49''',
                 language="python"
             ),
             CodeExample(
-                title="3Sum",
-                description="Encontrar todos los tripletes que suman cero",
-                code='''def three_sum(nums):
+                title="3Sum - Encontrar tripletes que suman cero",
+                description="Fija un número y usa Two Pointers para encontrar el par complementario. Clave: manejar duplicados.",
+                code='''def three_sum(nums: list[int]) -> list[list[int]]:
+    """
+    Encuentra todos los tripletes únicos que suman 0.
+    
+    Estrategia:
+    1. Ordenar el array (necesario para Two Pointers)
+    2. Fijar nums[i] y buscar two_sum = -nums[i]
+    3. Saltar duplicados en los 3 niveles
+    
+    Complejidad: O(n²) tiempo, O(1) espacio extra
+    """
     nums.sort()
     result = []
     
     for i in range(len(nums) - 2):
-        # Evitar duplicados para el primer número
+        # Optimización: si el menor es > 0, no hay tripletes
+        if nums[i] > 0:
+            break
+        
+        # Saltar duplicados para i
         if i > 0 and nums[i] == nums[i-1]:
             continue
         
+        # Two Pointers para el par restante
         left, right = i + 1, len(nums) - 1
+        target = -nums[i]
         
         while left < right:
-            total = nums[i] + nums[left] + nums[right]
+            total = nums[left] + nums[right]
             
-            if total == 0:
+            if total == target:
                 result.append([nums[i], nums[left], nums[right]])
-                # Evitar duplicados
+                # Saltar duplicados
                 while left < right and nums[left] == nums[left+1]:
                     left += 1
                 while left < right and nums[right] == nums[right-1]:
                     right -= 1
                 left += 1
                 right -= 1
-            elif total < 0:
+            elif total < target:
                 left += 1
             else:
                 right -= 1
@@ -1530,6 +1843,68 @@ print(max_area([1,8,6,2,5,4,8,3,7]))  # 49''',
 print(three_sum([-1, 0, 1, 2, -1, -4]))
 # [[-1, -1, 2], [-1, 0, 1]]''',
                 language="python"
+            ),
+            CodeExample(
+                title="Sort Colors (Dutch National Flag)",
+                description="Ordenar array con 3 valores usando 3 punteros. Una extensión elegante de Two Pointers.",
+                code='''def sort_colors(nums: list[int]) -> None:
+    """
+    Ordena array con solo 0s, 1s, y 2s in-place.
+    
+    Tres punteros:
+    - low: frontera de 0s (todo antes de low es 0)
+    - mid: puntero actual
+    - high: frontera de 2s (todo después de high es 2)
+    
+    Complejidad: O(n) tiempo, O(1) espacio - UNA sola pasada
+    """
+    low = mid = 0
+    high = len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1  # Ya está en su lugar
+        else:  # nums[mid] == 2
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1  # No avanzar mid! El swap puede traer un 0
+
+# Ejemplo
+arr = [2, 0, 2, 1, 1, 0]
+sort_colors(arr)
+print(arr)  # [0, 0, 1, 1, 2, 2]''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="tp-final-1",
+                question="Tienes un array NO ordenado y necesitas encontrar dos números que sumen un target. ¿Qué approach es mejor?",
+                options=[
+                    "Two Pointers directamente - O(n)",
+                    "Ordenar primero + Two Pointers - O(n log n)",
+                    "Hash Map para buscar complementos - O(n)",
+                    "Fuerza bruta con dos for loops - O(n²)"
+                ],
+                correct_index=2,
+                explanation="Para array NO ordenado, Hash Map es O(n) en tiempo y espacio. Two Pointers necesitaría ordenar primero, dando O(n log n). Si el array ya estuviera ordenado, Two Pointers sería mejor porque usa O(1) espacio.",
+                difficulty="medium"
+            ),
+            QuizQuestion(
+                id="tp-final-2",
+                question="En el problema Container With Most Water, ¿por qué movemos el puntero con menor altura?",
+                options=[
+                    "Porque el puntero menor siempre produce áreas más pequeñas",
+                    "Porque al reducir el ancho, la única forma de mejorar es encontrar una altura mayor, y eso solo puede pasar si movemos el puntero más bajo",
+                    "Porque el algoritmo funciona de forma aleatoria",
+                    "Porque mover el más alto nunca cambia el resultado"
+                ],
+                correct_index=1,
+                explanation="El área se calcula como min(h[L], h[R]) × ancho. Al mover cualquier puntero, el ancho DISMINUYE. Si movemos el puntero más alto, min() no puede aumentar (sigue limitada por el más bajo). Si movemos el más bajo, min() PODRÍA aumentar si encontramos una altura mayor. Es la única forma de posiblemente mejorar el área.",
+                difficulty="hard"
             )
         ],
         prerequisites=["big-o-introduccion"],
@@ -1545,6 +1920,45 @@ print(three_sum([-1, 0, 1, 2, -1, -4]))
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=60,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina que miras por una ventana de tren. La ventana tiene un tamaño fijo y solo ves lo que está dentro. A medida que el tren avanza, la ventana se 'desliza': entra una cosa nueva por la derecha y sale una por la izquierda. En vez de recalcular todo lo que ves desde cero cada vez, solo actualizas lo que entró y lo que salió. Así, Sliding Window convierte problemas que parecen O(n²) en O(n): en vez de revisar todos los subarrays posibles, solo deslizas la ventana y actualizas.""",
+        visual_diagram="""## Sliding Window: Ventana Deslizante
+
+### Ventana de tamano fijo (k=3)
+
+```
+  Array: [ 2 ]  [ 1 ]  [ 5 ]  [ 1 ]  [ 3 ]  [ 2 ]
+          ─────────────────
+          ventana k=3        sum = 8
+                  ─────────────────
+                  ventana k=3        sum = 7
+                          ─────────────────
+                          ventana k=3        sum = 9  ← max!
+```
+
+---
+
+### Ventana de tamano variable
+
+```
+  Target >= 7
+
+  [ 2 ]  [ 3 ]  [ 1 ]  [ 2 ]  [ 4 ]  [ 3 ]
+   L──────────────R                          sum=8 >= 7, contraer
+          L───────R                          sum=6 < 7, expandir
+          L──────────────R                   sum=10 >= 7, contraer
+                  L──────R                   sum=7 >= 7, len=2 ← min!
+```
+
+---
+
+### Cuando usar cada tipo
+
+| Tipo | Senal en el problema | Ejemplo |
+|------|---------------------|---------|
+| **Fija** | "k elementos consecutivos" | Max sum de k consecutivos |
+| **Variable** | "subarray mas corto/largo que..." | Min subarray con suma >= k |
+| **Con hash** | "substring sin repetir" | Longest substring sin duplicados |
+""",
         content=[
             ContentBlock(
                 type="text",
@@ -2883,11 +3297,11 @@ print(two_sum([2, 7, 11, 15], 9))  # [0, 1]''',
             )
         ],
         prerequisites=[],
-        nextLessonId="hash-tables-aplicaciones"
+        nextLessonId="hash-tables-problemas"
     ),
     
     Lesson(
-        id="hash-tables-aplicaciones",
+        id="hash-tables-problemas",
         moduleId="hash-tables",
         title="Aplicaciones de Hash Tables",
         description="Patrones comunes: frequency counter, caching, deduplicación.",
@@ -2970,7 +3384,7 @@ class LRUCache:
         id="hash-counting",
         moduleId="hash-tables",
         title="Patrones de Conteo con Hash",
-        description="Usa hash maps para contar frecuencias y resolver problemas de conteo.",
+        description="Usa hash maps para contar frecuencias, agrupar elementos y resolver problemas de conteo.",
         order=3,
         difficulty=Difficulty.EASY,
         estimatedMinutes=40,
@@ -2978,42 +3392,194 @@ class LRUCache:
         content=[
             ContentBlock(
                 type="text",
-                content="""# Patrones de Conteo
+                content="""# Patrones de Conteo con Hash Maps
 
-Los hash maps son ideales para contar frecuencias de elementos."""
+## ¿Por qué contar frecuencias?
+
+Contar cuántas veces aparece cada elemento es uno de los patrones más comunes en entrevistas. Aparece en problemas de:
+- **Anagramas**: ¿Tienen las mismas letras con la misma frecuencia?
+- **Mayoría**: ¿Qué elemento aparece más de n/2 veces?
+- **Top K**: ¿Cuáles son los k elementos más frecuentes?
+- **Duplicados**: ¿Hay algún elemento repetido?
+
+## Herramientas de Python
+
+Python tiene herramientas increíbles para conteo:
+
+```python
+from collections import Counter, defaultdict
+
+# Counter: crea un diccionario de frecuencias automáticamente
+Counter("banana")  # Counter({'a': 3, 'n': 2, 'b': 1})
+
+# defaultdict: diccionario con valor por defecto
+d = defaultdict(list)  # Si la key no existe, crea una lista vacía
+d["fruits"].append("apple")  # No necesitas verificar si existe
+```
+
+## El Patrón Frequency Counter
+
+```python
+# Patrón manual (sin Counter)
+freq = {}
+for item in collection:
+    freq[item] = freq.get(item, 0) + 1
+
+# Patrón con Counter (más Pythónico)
+freq = Counter(collection)
+```"""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''from collections import Counter
+                content='''from collections import Counter, defaultdict
 
-# Contar frecuencias
-def most_common_element(nums):
-    count = Counter(nums)
-    return count.most_common(1)[0][0]
+# ========================================
+# Patrón 1: Comparar Frecuencias
+# ========================================
 
-# Group Anagrams
+# Valid Anagram: ¿Dos strings tienen las mismas letras?
+def is_anagram(s, t):
+    return Counter(s) == Counter(t)
+
+print(is_anagram("anagram", "nagaram"))  # True
+print(is_anagram("rat", "car"))          # False
+
+# ========================================
+# Patrón 2: Agrupar por Clave
+# ========================================
+
+# Group Anagrams: Agrupar palabras que son anagramas entre sí
 def group_anagrams(strs):
-    groups = {}
+    groups = defaultdict(list)
     for s in strs:
+        # Clave: letras ordenadas (anagramas tienen la misma clave)
         key = tuple(sorted(s))
-        if key not in groups:
-            groups[key] = []
         groups[key].append(s)
     return list(groups.values())
 
-print(group_anagrams(["eat","tea","tan","ate","nat","bat"]))'''
+print(group_anagrams(["eat","tea","tan","ate","nat","bat"]))
+# [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+
+# ========================================
+# Patrón 3: Encontrar el Más Frecuente
+# ========================================
+
+# Majority Element: Elemento que aparece más de n/2 veces
+def majority_element(nums):
+    count = Counter(nums)
+    return count.most_common(1)[0][0]
+
+# Top K Frequent: Los k elementos más frecuentes
+def top_k_frequent(nums, k):
+    count = Counter(nums)
+    return [x for x, _ in count.most_common(k)]
+
+print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Patrón Avanzado: Bucket Sort con Frecuencias
+
+Para "Top K Frequent Elements", hay una solución O(n) usando **bucket sort**:
+1. Contamos frecuencias
+2. Creamos buckets donde el índice = frecuencia
+3. Recorremos los buckets de mayor a menor
+
+Esto es más eficiente que ordenar (O(n log n))."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Top K con Bucket Sort - O(n)
+def top_k_frequent_optimal(nums, k):
+    count = Counter(nums)
+    
+    # Crear buckets: bucket[i] = elementos con frecuencia i
+    buckets = [[] for _ in range(len(nums) + 1)]
+    for num, freq in count.items():
+        buckets[freq].append(num)
+    
+    # Recorrer de mayor frecuencia a menor
+    result = []
+    for freq in range(len(buckets) - 1, 0, -1):
+        for num in buckets[freq]:
+            result.append(num)
+            if len(result) == k:
+                return result
+    
+    return result
+
+# Ransom Note: ¿Puedo formar la nota con las letras del magazine?
+def can_construct(ransom_note, magazine):
+    mag_count = Counter(magazine)
+    for char in ransom_note:
+        if mag_count[char] <= 0:
+            return False
+        mag_count[char] -= 1
+    return True
+
+print(can_construct("aa", "aab"))  # True
+print(can_construct("aa", "ab"))   # False'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Resumen de Complejidad
+
+| Operación | Tiempo |
+|-----------|--------|
+| Contar frecuencias | O(n) |
+| Comparar dos Counter | O(n) |
+| most_common(k) | O(n log k) |
+| Bucket sort approach | O(n) |
+
+## Tips para Entrevistas
+- `Counter` es tu mejor amigo para problemas de frecuencia
+- `defaultdict(list)` para agrupar sin verificar existencia
+- Si te piden "top k", piensa en bucket sort para O(n)"""
             )
         ],
         codeExamples=[
             CodeExample(
-                title="Top K Frequent Elements",
-                description="Encontrar los k elementos más frecuentes",
-                code='''def top_k_frequent(nums, k):
-    count = Counter(nums)
-    return [x for x, _ in count.most_common(k)]
+                title="First Unique Character",
+                description="Encontrar el primer carácter que no se repite",
+                code='''def first_uniq_char(s):
+    count = Counter(s)
+    for i, char in enumerate(s):
+        if count[char] == 1:
+            return i
+    return -1
 
-print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]''',
+print(first_uniq_char("leetcode"))    # 0 (la 'l')
+print(first_uniq_char("loveleetcode"))  # 2 (la 'v')''',
+                language="python"
+            ),
+            CodeExample(
+                title="Minimum Window Substring",
+                description="Menor substring que contiene todas las letras de t",
+                code='''def min_window(s, t):
+    need = Counter(t)
+    missing = len(t)
+    left = start = end = 0
+    
+    for right, char in enumerate(s, 1):
+        if need[char] > 0:
+            missing -= 1
+        need[char] -= 1
+        
+        if missing == 0:
+            # Contraer ventana
+            while need[s[left]] < 0:
+                need[s[left]] += 1
+                left += 1
+            # Actualizar resultado
+            if not end or right - left <= end - start:
+                start, end = left, right
+            need[s[left]] += 1
+            missing += 1
+            left += 1
+    
+    return s[start:end]''',
                 language="python"
             )
         ],
@@ -3025,7 +3591,7 @@ print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]''',
         id="hash-two-sum-patterns",
         moduleId="hash-tables",
         title="Patrones Two Sum con Hash",
-        description="Resuelve variaciones del problema Two Sum usando hash maps.",
+        description="Resuelve variaciones del problema Two Sum y sus extensiones a 3Sum y 4Sum.",
         order=4,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=45,
@@ -3033,9 +3599,32 @@ print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]''',
         content=[
             ContentBlock(
                 type="text",
-                content="""# Patrones Two Sum
+                content="""# Patrones Two Sum con Hash
 
-El patrón Two Sum es fundamental: buscar pares que cumplan una condición."""
+## ¿Por qué es tan importante Two Sum?
+
+**Two Sum** es probablemente el problema más famoso de LeetCode y la puerta de entrada a muchos patrones. La idea es: dado un array y un target, encontrar dos números que sumen el target.
+
+## La Idea Clave: Complemento
+
+En lugar de probar todos los pares (O(n²)), por cada número `num`, calculamos su **complemento** = `target - num` y verificamos si ya lo vimos:
+
+```
+nums = [2, 7, 11, 15], target = 9
+
+num=2: complemento=7, no lo hemos visto → guardar {2: 0}
+num=7: complemento=2, ¡SÍ lo vimos! → return [0, 1]
+```
+
+## Variaciones del Patrón
+
+| Problema | Técnica | Complejidad |
+|----------|---------|-------------|
+| Two Sum (no ordenado) | Hash map | O(n) |
+| Two Sum II (ordenado) | Dos punteros | O(n) |
+| 3Sum | Ordenar + dos punteros | O(n²) |
+| 4Sum | Ordenar + dos punteros anidado | O(n³) |
+| Two Sum - Input is BST | Inorder + dos punteros | O(n) |"""
             ),
             ContentBlock(
                 type="code",
@@ -3099,7 +3688,7 @@ def two_sum_sorted(numbers, target):
         id="hash-set-operations",
         moduleId="hash-tables",
         title="Operaciones con Hash Sets",
-        description="Usa sets para operaciones de conjuntos eficientes.",
+        description="Usa sets para búsqueda O(1), deduplicación y operaciones de conjuntos.",
         order=5,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=40,
@@ -3107,9 +3696,39 @@ def two_sum_sorted(numbers, target):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Operaciones con Sets
+                content="""# Operaciones con Hash Sets
 
-Los sets proveen búsqueda O(1) y operaciones de conjuntos."""
+## ¿Qué es un Hash Set?
+
+Un **set** en Python es una colección que:
+- **No permite duplicados** (cada elemento es único)
+- **Búsqueda en O(1)** (basado en hash table)
+- **No tiene orden** (no puedes acceder por índice)
+
+## Operaciones de Conjuntos
+
+```python
+a = {1, 2, 3, 4}
+b = {3, 4, 5, 6}
+
+a | b    # Unión: {1, 2, 3, 4, 5, 6}
+a & b    # Intersección: {3, 4}
+a - b    # Diferencia: {1, 2}
+a ^ b    # Diferencia simétrica: {1, 2, 5, 6}
+```
+
+## ¿Cuándo usar Sets?
+
+| Situación | Set es ideal |
+|-----------|-------------|
+| Verificar si un elemento existe | `if x in my_set` → O(1) |
+| Eliminar duplicados | `unique = set(nums)` |
+| Encontrar elementos comunes | `set1 & set2` |
+| Secuencias consecutivas | Verificar inicio de secuencia |
+
+## El Truco del "Inicio de Secuencia"
+
+Para encontrar la secuencia consecutiva más larga, la clave es **solo empezar a contar desde el INICIO de una secuencia**. Un número es inicio si `num - 1` NO está en el set."""
             ),
             ContentBlock(
                 type="code",
@@ -3322,11 +3941,11 @@ print_list(head)  # 0 -> 1 -> 2 -> 3 -> None'''
             )
         ],
         prerequisites=[],
-        nextLessonId="linked-lists-tecnicas"
+        nextLessonId="linked-lists-two-pointers"
     ),
     
     Lesson(
-        id="linked-lists-tecnicas",
+        id="linked-lists-two-pointers",
         moduleId="linked-lists",
         title="Técnicas: Fast/Slow Pointers",
         description="Detectar ciclos, encontrar el medio, y más con dos punteros.",
@@ -4036,7 +4655,7 @@ def bfs(graph, start):
         id="stacks-monotonic",
         moduleId="stacks-queues",
         title="Monotonic Stack",
-        description="Usa stacks monótonos para resolver problemas de siguiente mayor/menor.",
+        description="Usa stacks monótonos para resolver problemas de siguiente mayor/menor elemento.",
         order=3,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=50,
@@ -4044,9 +4663,38 @@ def bfs(graph, start):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Monotonic Stack
+                content="""# Monotonic Stack: Un Patrón Poderoso
 
-Un stack monótono mantiene elementos ordenados (creciente o decreciente)."""
+## ¿Qué es un Monotonic Stack?
+
+Un **monotonic stack** es un stack donde los elementos se mantienen en orden (creciente o decreciente). Cada vez que añades un elemento que "rompe" el orden, sacas elementos hasta restaurarlo.
+
+## ¿Cuándo usarlo?
+
+Siempre que veas frases como:
+- "Next greater element" (siguiente elemento mayor)
+- "Next smaller element" (siguiente elemento menor)
+- "Previous greater/smaller element"
+- "Number of days until warmer temperature"
+- Problemas de histogramas o áreas
+
+## La Idea Clave
+
+Imagina que estás en una fila de personas y quieres saber: **¿quién es la primera persona más alta que yo a mi derecha?**
+
+En lugar de comparar cada persona con todas las demás (O(n²)), usamos un stack:
+1. Recorremos de izquierda a derecha
+2. Para cada persona, sacamos del stack a todos los que son más bajos que ella
+3. Esos que sacamos ya encontraron su "next greater" → es la persona actual
+
+## Tipos de Monotonic Stack
+
+| Tipo | Mantiene | Encuentra |
+|------|----------|-----------|
+| Decreciente (↓) | Valores de mayor a menor | Next Greater Element |
+| Creciente (↑) | Valores de menor a mayor | Next Smaller Element |
+
+**Complejidad**: O(n) tiempo, O(n) espacio - ¡cada elemento entra y sale del stack máximo una vez!"""
             ),
             ContentBlock(
                 type="code",
@@ -4119,9 +4767,24 @@ def daily_temperatures(temps):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Calculadoras
+                content="""# Calculadoras con Stack
 
-Usa stacks para evaluar expresiones con operadores y paréntesis."""
+## ¿Por qué Stacks para Calculadoras?
+
+Cuando evalúas `3 + 2 * 2`, no puedes simplemente ir de izquierda a derecha (darías 10 en vez de 7). Necesitas **respetar la precedencia** de operadores. Un stack te permite "posponer" operaciones de baja prioridad.
+
+## Estrategia General
+
+1. Recorre el string carácter a carácter
+2. Si es dígito → construye el número completo
+3. Si es operador o fin del string → procesa el operador **anterior**:
+   - `+/-`: guarda el número en el stack (con signo)
+   - `*//`: opera inmediatamente con el tope del stack
+4. Al final: suma todo el stack
+
+## Con Paréntesis
+
+Los paréntesis añaden una capa: cuando encuentras `(`, guardas el resultado actual y empiezas de cero. Cuando encuentras `)`, combinas con lo guardado."""
             ),
             ContentBlock(
                 type="code",
@@ -4197,7 +4860,7 @@ print(calculate("3+2*2"))  # 7'''
         id="deque-sliding-window",
         moduleId="stacks-queues",
         title="Deque y Sliding Window",
-        description="Usa deques para ventanas deslizantes eficientes.",
+        description="Usa deques para mantener el máximo/mínimo en ventanas deslizantes en O(n).",
         order=5,
         difficulty=Difficulty.HARD,
         estimatedMinutes=50,
@@ -4207,7 +4870,31 @@ print(calculate("3+2*2"))  # 7'''
                 type="text",
                 content="""# Deque para Sliding Window
 
-Deque permite O(1) en ambos extremos, ideal para ventanas."""
+## ¿Qué es un Deque?
+
+Un **deque** (double-ended queue) permite añadir y quitar elementos por **ambos extremos** en O(1). En Python: `from collections import deque`.
+
+## ¿Por qué Deque + Sliding Window?
+
+Imagina que tienes una ventana de tamaño k deslizándose sobre un array y necesitas el **máximo** en cada posición. Sin deque sería O(n·k). Con deque es O(n).
+
+## La Idea: Monotonic Deque
+
+Mantenemos un deque con los **índices** de los máximos potenciales, en orden decreciente de valor:
+
+1. **Quitar viejos**: Si el frente del deque está fuera de la ventana → `popleft()`
+2. **Mantener orden**: Mientras el nuevo elemento sea mayor que el final del deque → `pop()`  
+3. **Añadir**: Agregar el nuevo índice al final → `append()`
+4. **Resultado**: El frente del deque siempre tiene el máximo actual
+
+```
+nums = [1, 3, -1, -3, 5, 3, 6, 7], k = 3
+
+ventana [1,3,-1]:  deque=[1(3)]  → max = 3
+ventana [3,-1,-3]: deque=[1(3)]  → max = 3
+ventana [-1,-3,5]: deque=[4(5)]  → max = 5
+...
+```"""
             ),
             ContentBlock(
                 type="code",
@@ -4270,7 +4957,7 @@ print(max_sliding_window([1,3,-1,-3,5,3,6,7], 3))  # [3,3,5,5,6,7]'''
         id="priority-queue",
         moduleId="stacks-queues",
         title="Priority Queue (Heap)",
-        description="Usa heaps como colas de prioridad para problemas ordenados.",
+        description="Usa heaps como colas de prioridad: Top K, merge k sorted lists y más.",
         order=6,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=45,
@@ -4280,7 +4967,42 @@ print(max_sliding_window([1,3,-1,-3,5,3,6,7], 3))  # [3,3,5,5,6,7]'''
                 type="text",
                 content="""# Priority Queue con Heaps
 
-Un heap provee O(log n) para insert/extract y O(1) para peek."""
+## ¿Qué es una Priority Queue?
+
+Es una cola donde cada elemento tiene una **prioridad** y siempre sale primero el de mayor (o menor) prioridad. La implementación más eficiente es con un **heap**.
+
+## Complejidad
+
+| Operación | Tiempo |
+|-----------|--------|
+| Insert (heappush) | O(log n) |
+| Extract min (heappop) | O(log n) |
+| Peek (heap[0]) | O(1) |
+| Heapify (crear heap) | O(n) |
+
+## Python: `heapq`
+
+Python solo tiene **min-heap** (el menor está arriba). Para max-heap, usa negativos:
+
+```python
+import heapq
+
+# Min-heap
+heapq.heappush(heap, 3)    # Añadir
+min_val = heapq.heappop(heap)  # Extraer mínimo
+min_val = heap[0]            # Ver mínimo sin extraer
+
+# Max-heap → negar valores
+heapq.heappush(heap, -val)  # Añadir
+max_val = -heapq.heappop(heap)  # Extraer máximo
+```
+
+## ¿Cuándo usar Heaps?
+
+- "Top K" / "K-ésimo mayor/menor" → Heap de tamaño K
+- "Merge K sorted lists" → Min-heap con un elemento de cada lista
+- "Mediana en stream" → Dos heaps (max-heap izq + min-heap der)
+- Cualquier problema donde necesitas acceder al min/max dinámicamente"""
             ),
             ContentBlock(
                 type="code",
@@ -4439,14 +5161,14 @@ def level_order(root):
             )
         ],
         prerequisites=[],
-        nextLessonId="trees-problemas"
+        nextLessonId="trees-traversals"
     ),
     
     Lesson(
-        id="trees-problemas",
+        id="trees-traversals",
         moduleId="trees",
-        title="Problemas Clásicos de Árboles",
-        description="Maximum depth, path sum, symmetric tree y más.",
+        title="Recorridos de Árboles",
+        description="Preorder, inorder, postorder y level order: los 4 recorridos fundamentales.",
         order=2,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=55,
@@ -4454,62 +5176,318 @@ def level_order(root):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Problemas Clásicos de Árboles
+                content="""# Recorridos de Árboles Binarios
 
-La mayoría de problemas de árboles se resuelven con recursión. La clave es identificar:
+Los recorridos (traversals) son la base de TODO lo que harás con árboles. Antes de resolver cualquier problema, necesitas saber **cómo visitar cada nodo** de forma ordenada.
 
-1. **Caso base**: Qué retornar cuando el nodo es None
-2. **Relación recursiva**: Cómo combinar resultados de subárboles"""
+## ¿Por qué importan los recorridos?
+
+Imagina que tienes un árbol genealógico y quieres listar a todos los miembros. ¿Por dónde empiezas? ¿Vas primero por una rama completa o nivel por nivel? Esa decisión es exactamente lo que distingue los tipos de recorrido.
+
+## Los 4 Tipos Fundamentales
+
+Hay **dos familias** de recorridos:
+
+### 🔹 DFS (Depth-First Search) - Van "hacia abajo" primero
+1. **Preorder**: Raíz → Izquierda → Derecha (útil para copiar/serializar árboles)
+2. **Inorder**: Izquierda → Raíz → Derecha (en BST da orden ascendente ⭐)
+3. **Postorder**: Izquierda → Derecha → Raíz (útil para eliminar/evaluar)
+
+### 🔹 BFS (Breadth-First Search) - Van "por niveles"
+4. **Level Order**: Nivel 0 → Nivel 1 → Nivel 2... (útil para encontrar el camino más corto)
+
+## Ejemplo Visual
+
+```
+        1
+       / \\
+      2   3
+     / \\   \\
+    4   5   6
+```
+
+| Recorrido  | Orden de visita | Resultado    |
+|------------|-----------------|-------------|
+| Preorder   | Raíz→Izq→Der   | [1,2,4,5,3,6] |
+| Inorder    | Izq→Raíz→Der   | [4,2,5,1,3,6] |
+| Postorder  | Izq→Der→Raíz   | [4,5,2,6,3,1] |
+| Level Order| Nivel por nivel | [1,2,3,4,5,6] |
+
+## Truco para Recordar
+
+- **Pre**order = la raíz va **PRE** (antes) que todo
+- **In**order = la raíz va **IN** (en medio) de izquierda y derecha
+- **Post**order = la raíz va **POST** (después) de todo"""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Maximum Depth
-def max_depth(root):
+                content='''# Definición del nodo
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+# ========================================
+# 1. PREORDER: Raíz → Izquierda → Derecha
+# ========================================
+# Recursivo (más intuitivo)
+def preorder_recursive(root):
     if not root:
-        return 0
-    return 1 + max(max_depth(root.left), max_depth(root.right))
+        return []
+    return [root.val] + preorder_recursive(root.left) + preorder_recursive(root.right)
 
-# Same Tree
-def is_same_tree(p, q):
-    if not p and not q:
-        return True
-    if not p or not q:
-        return False
-    return (p.val == q.val and 
-            is_same_tree(p.left, q.left) and 
-            is_same_tree(p.right, q.right))
+# Iterativo (con stack - importante para entrevistas)
+def preorder_iterative(root):
+    if not root:
+        return []
+    result = []
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        result.append(node.val)
+        # ¡Derecha primero! Porque el stack es LIFO
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+    return result
 
-# Symmetric Tree
-def is_symmetric(root):
-    def is_mirror(t1, t2):
-        if not t1 and not t2:
-            return True
-        if not t1 or not t2:
-            return False
-        return (t1.val == t2.val and
-                is_mirror(t1.left, t2.right) and
-                is_mirror(t1.right, t2.left))
+# ========================================
+# 2. INORDER: Izquierda → Raíz → Derecha
+# ========================================
+# Recursivo
+def inorder_recursive(root):
+    if not root:
+        return []
+    return inorder_recursive(root.left) + [root.val] + inorder_recursive(root.right)
+
+# Iterativo (patrón importante: ir lo más a la izquierda posible)
+def inorder_iterative(root):
+    result = []
+    stack = []
+    current = root
+    while current or stack:
+        # Ir lo más a la izquierda posible
+        while current:
+            stack.append(current)
+            current = current.left
+        # Procesar nodo
+        current = stack.pop()
+        result.append(current.val)
+        # Ir a la derecha
+        current = current.right
+    return result
+
+# ========================================
+# 3. POSTORDER: Izquierda → Derecha → Raíz
+# ========================================
+# Recursivo
+def postorder_recursive(root):
+    if not root:
+        return []
+    return postorder_recursive(root.left) + postorder_recursive(root.right) + [root.val]
+
+# Iterativo (truco: preorder modificado + reverse)
+def postorder_iterative(root):
+    if not root:
+        return []
+    result = []
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        result.append(node.val)
+        # Izquierda primero (inverso del preorder)
+        if node.left:
+            stack.append(node.left)
+        if node.right:
+            stack.append(node.right)
+    return result[::-1]  # Invertir al final'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Level Order Traversal (BFS)
+
+El recorrido por niveles usa una **cola (queue)** en lugar de un stack. Es la base para muchos problemas de árboles como:
+- Encontrar el ancho máximo del árbol
+- Zigzag traversal
+- Right side view del árbol
+- Conectar nodos del mismo nivel
+
+### ¿Cómo funciona?
+1. Empezamos con la raíz en la cola
+2. Para cada nivel, procesamos TODOS los nodos de ese nivel
+3. Al procesar cada nodo, añadimos sus hijos a la cola
+4. Repetimos hasta que la cola esté vacía"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''from collections import deque
+
+# ========================================
+# 4. LEVEL ORDER: Nivel por nivel (BFS)
+# ========================================
+def level_order(root):
+    if not root:
+        return []
     
-    return is_mirror(root, root)'''
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)  # Nodos en este nivel
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result
+
+# Ejemplo:
+#       1
+#      / \\
+#     2   3
+#    / \\   \\
+#   4   5   6
+# Resultado: [[1], [2, 3], [4, 5, 6]]
+
+# ========================================
+# VARIANTE: Zigzag Level Order
+# ========================================
+def zigzag_level_order(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    left_to_right = True
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        if not left_to_right:
+            level.reverse()
+        result.append(level)
+        left_to_right = not left_to_right
+    
+    return result'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## ¿Cuándo usar cada recorrido?
+
+| Situación | Recorrido | ¿Por qué? |
+|-----------|-----------|-----------|
+| Copiar/serializar un árbol | Preorder | Procesas la raíz primero, luego reconstruyes |
+| Obtener valores ordenados de un BST | Inorder | BST + inorder = orden ascendente |
+| Eliminar un árbol (liberar memoria) | Postorder | Eliminas hijos antes que padres |
+| Encontrar profundidad mínima | Level Order | El primer leaf que encuentres es el más cercano |
+| Evaluar expresiones matemáticas | Postorder | Evalúas operandos antes del operador |
+
+## Complejidad
+
+Todos los recorridos tienen la misma complejidad:
+- **Tiempo**: O(n) - visitamos cada nodo exactamente una vez
+- **Espacio**: O(h) para DFS (h = altura), O(w) para BFS (w = ancho máximo)
+  - Mejor caso (árbol balanceado): O(log n)
+  - Peor caso (árbol degenerado/lista): O(n)
+
+## Tip para Entrevistas
+
+> Cuando te pregunten un problema de árboles, primero piensa: "¿Necesito DFS o BFS?" 
+> - Si necesitas **explorar caminos completos** → DFS
+> - Si necesitas **procesar nivel por nivel** → BFS
+> - Si necesitas **valores ordenados** de un BST → Inorder"""
             )
         ],
         codeExamples=[
             CodeExample(
-                title="Path Sum",
-                description="Verificar si existe un camino root-to-leaf con suma dada",
-                code='''def has_path_sum(root, target_sum):
+                title="Recorridos completos con ejemplo",
+                description="Todos los recorridos aplicados al mismo árbol para comparar",
+                code='''class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+# Construir árbol de ejemplo:
+#       1
+#      / \\
+#     2   3
+#    / \\   \\
+#   4   5   6
+root = TreeNode(1)
+root.left = TreeNode(2, TreeNode(4), TreeNode(5))
+root.right = TreeNode(3, None, TreeNode(6))
+
+# Preorder: Raíz → Izq → Der
+def preorder(root):
+    if not root: return []
+    return [root.val] + preorder(root.left) + preorder(root.right)
+
+# Inorder: Izq → Raíz → Der  
+def inorder(root):
+    if not root: return []
+    return inorder(root.left) + [root.val] + inorder(root.right)
+
+# Postorder: Izq → Der → Raíz
+def postorder(root):
+    if not root: return []
+    return postorder(root.left) + postorder(root.right) + [root.val]
+
+print("Preorder: ", preorder(root))   # [1, 2, 4, 5, 3, 6]
+print("Inorder:  ", inorder(root))    # [4, 2, 5, 1, 3, 6]
+print("Postorder:", postorder(root))  # [4, 5, 2, 6, 3, 1]''',
+                language="python"
+            ),
+            CodeExample(
+                title="Serializar y Deserializar un Árbol",
+                description="Usa preorder traversal para convertir árbol ↔ string",
+                code='''# Serializar: árbol → string (usando preorder)
+def serialize(root):
     if not root:
-        return False
+        return "null"
+    return f"{root.val},{serialize(root.left)},{serialize(root.right)}"
+
+# Deserializar: string → árbol
+def deserialize(data):
+    values = iter(data.split(","))
     
-    # Es leaf y suma coincide
-    if not root.left and not root.right:
-        return root.val == target_sum
+    def build():
+        val = next(values)
+        if val == "null":
+            return None
+        node = TreeNode(int(val))
+        node.left = build()
+        node.right = build()
+        return node
     
-    # Buscar en subárboles con suma reducida
-    remaining = target_sum - root.val
-    return (has_path_sum(root.left, remaining) or
-            has_path_sum(root.right, remaining))''',
+    return build()
+
+# Ejemplo
+tree_string = serialize(root)
+print(tree_string)  # "1,2,4,null,null,5,null,null,3,null,6,null,null"
+restored = deserialize(tree_string)
+print(preorder(restored))  # [1, 2, 4, 5, 3, 6] ✓''',
                 language="python"
             )
         ],
@@ -4521,7 +5499,7 @@ def is_symmetric(root):
         id="trees-dfs",
         moduleId="trees",
         title="DFS en Árboles",
-        description="Técnicas de búsqueda en profundidad para árboles.",
+        description="Técnicas de búsqueda en profundidad: problemas clásicos y patrones recursivos.",
         order=3,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=50,
@@ -4529,28 +5507,68 @@ def is_symmetric(root):
         content=[
             ContentBlock(
                 type="text",
-                content="""# DFS en Árboles
+                content="""# DFS en Árboles: Problemas y Patrones
 
-DFS explora lo más profundo posible antes de retroceder."""
+Ya conoces los recorridos (preorder, inorder, postorder). Ahora vamos a usar DFS para **resolver problemas reales**.
+
+## ¿Qué es DFS en el contexto de problemas?
+
+DFS (Depth-First Search) en árboles significa explorar **todo un camino hasta las hojas** antes de retroceder. La mayoría de problemas de árboles se resuelven con DFS recursivo.
+
+## El Patrón DFS Recursivo
+
+Casi todos los problemas de DFS en árboles siguen este esqueleto:
+
+```python
+def dfs(node):
+    # 1. Caso base: ¿qué pasa si el nodo es None?
+    if not node:
+        return valor_base
+    
+    # 2. Resolver para subárboles izquierdo y derecho
+    left_result = dfs(node.left)
+    right_result = dfs(node.right)
+    
+    # 3. Combinar resultados con el nodo actual
+    return combinar(node.val, left_result, right_result)
+```
+
+## Tipos de Problemas DFS
+
+1. **Top-down**: Pasas información del padre al hijo (usa parámetros)
+2. **Bottom-up**: Recoges información de los hijos (usa return)
+3. **Combinado**: Necesitas información de ambas direcciones"""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Maximum Depth
+                content='''# ========================================
+# BOTTOM-UP: Información de hijos → padre
+# ========================================
+
+# Maximum Depth (el clásico)
 def max_depth(root):
+    """La profundidad máxima es la más profunda entre izq y der + 1"""
     if not root:
         return 0
-    return 1 + max(max_depth(root.left), max_depth(root.right))
+    left_depth = max_depth(root.left)
+    right_depth = max_depth(root.right)
+    return 1 + max(left_depth, right_depth)
 
-# Same Tree
+# Same Tree: ¿Son dos árboles idénticos?
 def is_same_tree(p, q):
+    # Ambos vacíos → iguales
     if not p and not q:
         return True
-    if not p or not q or p.val != q.val:
+    # Uno vacío y otro no → diferentes
+    if not p or not q:
         return False
-    return is_same_tree(p.left, q.left) and is_same_tree(p.right, q.right)
+    # Comparar valor actual Y ambos subárboles
+    return (p.val == q.val and 
+            is_same_tree(p.left, q.left) and 
+            is_same_tree(p.right, q.right))
 
-# Symmetric Tree
+# Symmetric Tree: ¿Es simétrico (espejo)?
 def is_symmetric(root):
     def is_mirror(t1, t2):
         if not t1 and not t2:
@@ -4558,34 +5576,147 @@ def is_symmetric(root):
         if not t1 or not t2:
             return False
         return (t1.val == t2.val and
-                is_mirror(t1.left, t2.right) and
-                is_mirror(t1.right, t2.left))
-    return is_mirror(root, root)'''
-            )
-        ],
-        codeExamples=[
-            CodeExample(
-                title="Path Sum II - Todas las rutas",
-                description="Encontrar todas las rutas con una suma dada",
-                code='''def path_sum_ii(root, target):
+                is_mirror(t1.left, t2.right) and  # Izq con Der
+                is_mirror(t1.right, t2.left))      # Der con Izq
+    return is_mirror(root, root)
+
+# ========================================
+# TOP-DOWN: Información de padre → hijos
+# ========================================
+
+# Has Path Sum: ¿Existe camino root→leaf con suma dada?
+def has_path_sum(root, target_sum):
+    if not root:
+        return False
+    # Si es hoja, verificar si la suma coincide
+    if not root.left and not root.right:
+        return root.val == target_sum
+    # Pasar la suma restante a los hijos
+    remaining = target_sum - root.val
+    return (has_path_sum(root.left, remaining) or
+            has_path_sum(root.right, remaining))'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Patrón: Recolectar Todos los Caminos
+
+Muchos problemas piden "todos los caminos" o "todos los valores". Para esto usamos **backtracking con DFS**: llevamos un `path` que modificamos al bajar y restauramos al subir.
+
+### Clave del backtracking en árboles:
+1. Añadir el nodo actual al camino
+2. Si es hoja y cumple la condición → guardar copia del camino
+3. Explorar hijos
+4. **Quitar el nodo del camino** (backtrack)"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Path Sum II: Encontrar TODOS los caminos root→leaf con suma dada
+def path_sum_ii(root, target):
     result = []
     
     def dfs(node, remaining, path):
         if not node:
             return
         
-        path.append(node.val)
+        path.append(node.val)  # Añadir al camino
         
+        # ¿Es hoja con suma correcta?
         if not node.left and not node.right and remaining == node.val:
-            result.append(path.copy())
+            result.append(path.copy())  # ¡Copia! No referencia
         else:
             dfs(node.left, remaining - node.val, path)
             dfs(node.right, remaining - node.val, path)
         
-        path.pop()
+        path.pop()  # Backtrack: quitar del camino
     
     dfs(root, target, [])
-    return result''',
+    return result
+
+# Ejemplo:
+#       5
+#      / \\
+#     4   8
+#    /   / \\
+#   11  13  4
+#  / \\     / \\
+# 7   2   5   1
+# target = 22
+# Resultado: [[5,4,11,2], [5,8,4,5]]
+
+# Binary Tree Paths: Todos los caminos root→leaf como strings
+def binary_tree_paths(root):
+    result = []
+    
+    def dfs(node, path):
+        if not node:
+            return
+        path.append(str(node.val))
+        if not node.left and not node.right:
+            result.append("->".join(path))
+        else:
+            dfs(node.left, path)
+            dfs(node.right, path)
+        path.pop()
+    
+    dfs(root, [])
+    return result
+
+# Invert Binary Tree (el favorito de las entrevistas)
+def invert_tree(root):
+    if not root:
+        return None
+    # Intercambiar hijos
+    root.left, root.right = root.right, root.left
+    # Recursivamente invertir subárboles
+    invert_tree(root.left)
+    invert_tree(root.right)
+    return root'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Errores Comunes en DFS
+
+1. **Olvidar el caso base**: Siempre maneja `if not node: return`
+2. **No copiar el path**: `result.append(path.copy())` NO `result.append(path)`
+3. **Olvidar el backtrack**: Si modificas `path`, siempre haz `path.pop()` al final
+4. **Confundir hoja con None**: Una hoja es un nodo sin hijos, no un nodo None
+
+## Resumen de Complejidad
+- **Tiempo**: O(n) - visitamos cada nodo una vez
+- **Espacio**: O(h) - la pila de recursión tiene como máximo la altura del árbol"""
+            )
+        ],
+        codeExamples=[
+            CodeExample(
+                title="Validate BST con DFS",
+                description="Verificar si un árbol es un BST válido usando rangos",
+                code='''def is_valid_bst(root):
+    def validate(node, min_val, max_val):
+        if not node:
+            return True
+        if node.val <= min_val or node.val >= max_val:
+            return False
+        return (validate(node.left, min_val, node.val) and
+                validate(node.right, node.val, max_val))
+    
+    return validate(root, float('-inf'), float('inf'))''',
+                language="python"
+            ),
+            CodeExample(
+                title="Count Good Nodes",
+                description="Contar nodos donde ningún ancestro es mayor",
+                code='''def good_nodes(root):
+    def dfs(node, max_so_far):
+        if not node:
+            return 0
+        count = 1 if node.val >= max_so_far else 0
+        new_max = max(max_so_far, node.val)
+        count += dfs(node.left, new_max)
+        count += dfs(node.right, new_max)
+        return count
+    
+    return dfs(root, root.val)''',
                 language="python"
             )
         ],
@@ -4597,7 +5728,7 @@ def is_symmetric(root):
         id="trees-bfs",
         moduleId="trees",
         title="BFS en Árboles",
-        description="Búsqueda por niveles y problemas de level-order.",
+        description="Búsqueda por niveles: level order, right side view, minimum depth y más.",
         order=4,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=45,
@@ -4605,16 +5736,55 @@ def is_symmetric(root):
         content=[
             ContentBlock(
                 type="text",
-                content="""# BFS en Árboles
+                content="""# BFS en Árboles: Exploración Nivel por Nivel
 
-BFS explora nivel por nivel usando una cola."""
+## ¿Qué es BFS?
+
+BFS (Breadth-First Search) explora el árbol **nivel por nivel**, de izquierda a derecha. A diferencia de DFS que va "hasta el fondo", BFS va "a lo ancho".
+
+## ¿Cuándo usar BFS en lugar de DFS?
+
+| Usa BFS cuando... | Ejemplo |
+|-------------------|---------|
+| Necesitas procesar por niveles | Level order traversal |
+| Buscas el camino más corto | Minimum depth |
+| Necesitas el último/primer nodo de cada nivel | Right/Left side view |
+| Trabajas con "vecinos" del mismo nivel | Connect next pointers |
+
+## El Patrón BFS con Cola
+
+```python
+from collections import deque
+
+def bfs_template(root):
+    if not root:
+        return []
+    
+    queue = deque([root])      # Cola con la raíz
+    
+    while queue:
+        level_size = len(queue)  # ¡Clave! Nodos en ESTE nivel
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            # Procesar nodo...
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+```
+
+**¿Por qué `level_size = len(queue)`?** Porque nos permite saber exactamente cuántos nodos pertenecen al nivel actual antes de añadir los del siguiente nivel."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
                 content='''from collections import deque
 
-# Level Order Traversal
+# ========================================
+# Level Order Traversal (el clásico)
+# ========================================
 def level_order(root):
     if not root:
         return []
@@ -4638,7 +5808,19 @@ def level_order(root):
     
     return result
 
+# Ejemplo:
+#       3
+#      / \\
+#     9   20
+#        /  \\
+#       15   7
+# Resultado: [[3], [9, 20], [15, 7]]
+
+# ========================================
 # Right Side View
+# ========================================
+# ¿Qué verías si miras el árbol desde la derecha?
+# Respuesta: el ÚLTIMO nodo de cada nivel
 def right_side_view(root):
     if not root:
         return []
@@ -4650,21 +5832,57 @@ def right_side_view(root):
         level_size = len(queue)
         for i in range(level_size):
             node = queue.popleft()
-            if i == level_size - 1:
+            if i == level_size - 1:  # Último nodo del nivel
                 result.append(node.val)
             if node.left:
                 queue.append(node.left)
             if node.right:
                 queue.append(node.right)
     
-    return result'''
-            )
-        ],
-        codeExamples=[
-            CodeExample(
-                title="Zigzag Level Order",
-                description="Recorrido en zigzag por niveles",
-                code='''def zigzag_level_order(root):
+    return result
+
+# ========================================
+# Minimum Depth (BFS es ÓPTIMO aquí)
+# ========================================
+# BFS encuentra la primera hoja = profundidad mínima
+def min_depth(root):
+    if not root:
+        return 0
+    
+    queue = deque([(root, 1)])  # (nodo, profundidad)
+    
+    while queue:
+        node, depth = queue.popleft()
+        
+        # ¡Primera hoja encontrada! BFS garantiza que es la más cercana
+        if not node.left and not node.right:
+            return depth
+        
+        if node.left:
+            queue.append((node.left, depth + 1))
+        if node.right:
+            queue.append((node.right, depth + 1))'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Variantes Populares en Entrevistas
+
+### Zigzag Level Order
+Alterna la dirección en cada nivel: izquierda→derecha, luego derecha→izquierda.
+
+### Average of Levels
+Calcula el promedio de valores en cada nivel.
+
+### Maximum Width
+Encuentra el nivel con más nodos (contando None entre nodos)."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# ========================================
+# Zigzag Level Order
+# ========================================
+def zigzag_level_order(root):
     if not root:
         return []
     
@@ -4688,7 +5906,77 @@ def right_side_view(root):
         result.append(list(level))
         left_to_right = not left_to_right
     
-    return result''',
+    return result
+
+# ========================================
+# Average of Levels
+# ========================================
+def average_of_levels(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_sum = 0
+        level_size = len(queue)
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level_sum += node.val
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level_sum / level_size)
+    
+    return result'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## BFS vs DFS: Resumen
+
+| Aspecto | BFS | DFS |
+|---------|-----|-----|
+| Estructura | Cola (queue) | Pila (stack/recursión) |
+| Exploración | Nivel por nivel | Camino completo |
+| Espacio | O(w) ancho máximo | O(h) altura |
+| Mejor para | Camino más corto, niveles | Caminos completos, búsqueda profunda |
+| Implementación | Siempre iterativo | Recursivo o iterativo |
+
+## Complejidad
+- **Tiempo**: O(n) - visitamos cada nodo una vez
+- **Espacio**: O(w) donde w es el ancho máximo del árbol (peor caso O(n/2) = O(n) en último nivel)"""
+            )
+        ],
+        codeExamples=[
+            CodeExample(
+                title="Connect Next Right Pointers",
+                description="Conectar cada nodo con su vecino de la derecha en el mismo nivel",
+                code='''def connect(root):
+    if not root:
+        return root
+    
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        for i in range(level_size):
+            node = queue.popleft()
+            # Conectar con el siguiente si no es el último del nivel
+            if i < level_size - 1:
+                node.next = queue[0]
+            else:
+                node.next = None
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+    
+    return root''',
                 language="python"
             )
         ],
@@ -4700,7 +5988,7 @@ def right_side_view(root):
         id="trees-construction",
         moduleId="trees",
         title="Construcción de Árboles",
-        description="Construye árboles desde recorridos preorder/inorder/postorder.",
+        description="Reconstruye árboles desde recorridos preorder/inorder/postorder.",
         order=5,
         difficulty=Difficulty.HARD,
         estimatedMinutes=55,
@@ -4708,9 +5996,41 @@ def right_side_view(root):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Construcción de Árboles
+                content="""# Construcción de Árboles desde Recorridos
 
-Reconstruye árboles desde sus recorridos."""
+## ¿Por qué es importante?
+
+Este es un problema clásico de entrevistas: dado uno o dos recorridos de un árbol, ¿puedes reconstruirlo?
+
+## La Clave: ¿Qué información da cada recorrido?
+
+- **Preorder** `[Raíz, ...izquierda..., ...derecha...]`: El **primer elemento** siempre es la raíz
+- **Inorder** `[...izquierda..., Raíz, ...derecha...]`: Divide el árbol en subárbol izquierdo y derecho
+- **Postorder** `[...izquierda..., ...derecha..., Raíz]`: El **último elemento** siempre es la raíz
+
+## ¿Qué combinaciones funcionan?
+
+| Combinación | ¿Funciona? | ¿Por qué? |
+|-------------|-----------|-----------|
+| Preorder + Inorder | ✅ Sí | Preorder da la raíz, inorder divide izq/der |
+| Postorder + Inorder | ✅ Sí | Postorder da la raíz, inorder divide izq/der |
+| Preorder + Postorder | ❌ No (en general) | Sin inorder no sabemos dónde dividir |
+
+## Algoritmo Paso a Paso
+
+```
+Preorder: [3, 9, 20, 15, 7]
+Inorder:  [9, 3, 15, 20, 7]
+
+Paso 1: La raíz es preorder[0] = 3
+Paso 2: En inorder, 3 está en posición 1
+         → Izquierda: inorder[:1] = [9]
+         → Derecha: inorder[2:] = [15, 20, 7]
+Paso 3: En preorder, separamos igual:
+         → Izquierda: preorder[1:2] = [9]
+         → Derecha: preorder[2:] = [20, 15, 7]
+Paso 4: Recurrir para cada subárbol
+```"""
             ),
             ContentBlock(
                 type="code",
@@ -4776,7 +6096,7 @@ def build_tree_in_post(inorder, postorder):
         id="trees-lca",
         moduleId="trees",
         title="Lowest Common Ancestor",
-        description="Encuentra el ancestro común más bajo de dos nodos.",
+        description="Encuentra el ancestro común más bajo de dos nodos en un árbol.",
         order=6,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=45,
@@ -4786,7 +6106,38 @@ def build_tree_in_post(inorder, postorder):
                 type="text",
                 content="""# Lowest Common Ancestor (LCA)
 
-El LCA es el ancestro más profundo compartido por dos nodos."""
+## ¿Qué es el LCA?
+
+El **Lowest Common Ancestor** (Ancestro Común Más Bajo) de dos nodos `p` y `q` es el nodo más profundo que es ancestro de ambos.
+
+### Ejemplo Visual
+```
+        3
+       / \\
+      5   1
+     / \\ / \\
+    6  2 0  8
+      / \\
+     7   4
+```
+
+- LCA(5, 1) = **3** (la raíz es ancestro de ambos)
+- LCA(5, 4) = **5** (5 es ancestro de 4, y es ancestro de sí mismo)
+- LCA(6, 4) = **5** (5 es el ancestro más profundo que comparten)
+
+## ¿Cuándo aparece en entrevistas?
+
+- Encontrar la distancia entre dos nodos
+- Verificar si un nodo es ancestro de otro
+- Problemas de rutas entre dos nodos en un árbol
+
+## La Intuición del Algoritmo
+
+Para cada nodo, preguntamos: "¿Los nodos `p` y `q` están en mi subárbol?"
+
+- Si `p` está en mi subárbol izquierdo y `q` en el derecho → **yo soy el LCA**
+- Si ambos están en el mismo lado → el LCA está en ese lado
+- Si yo soy `p` o `q` → yo soy el LCA (el otro está en mi subárbol)"""
             ),
             ContentBlock(
                 type="code",
@@ -4850,9 +6201,32 @@ def lca_bst(root, p, q):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Propiedades de Árboles
+                content="""# Diámetro y Propiedades de Árboles
 
-Cálculo de propiedades globales del árbol."""
+## ¿Qué es el Diámetro?
+
+El **diámetro** de un árbol es la longitud del camino más largo entre **cualquier** par de nodos. Este camino puede o no pasar por la raíz.
+
+```
+        1
+       / \\
+      2   3      Diámetro = 3 (camino: 4→2→1→3)
+     / \\
+    4   5        Pero si 5 tuviera hijos profundos,
+                 el diámetro podría NO pasar por la raíz
+```
+
+## El Truco: Variable Global + Altura
+
+Para calcular el diámetro, en cada nodo calculamos la **altura** de sus subárboles izquierdo y derecho. El camino más largo QUE PASA POR ESE NODO es `left_height + right_height`.
+
+## ¿Qué es un Árbol Balanceado?
+
+Un árbol es **balanceado** si para CADA nodo, la diferencia de altura entre sus subárboles izquierdo y derecho es ≤ 1. Usamos el mismo patrón de calcular alturas, pero retornamos -1 si detectamos desbalance.
+
+## Maximum Path Sum (Hard pero importante)
+
+Similar al diámetro pero con **sumas**: encuentra el camino con la suma máxima de valores. La clave es que a cada nodo le "ofreces" al padre tu mejor contribución (izq o der, no ambos)."""
             ),
             ContentBlock(
                 type="code",
@@ -4931,7 +6305,29 @@ def is_balanced(root):
                 type="text",
                 content="""# Problemas de Subárboles
 
-Operaciones que involucran subárboles completos."""
+## ¿Qué son los problemas de subárboles?
+
+Son problemas donde necesitas comparar, transformar o analizar **subárboles completos**. Incluyen:
+
+- **Subtree of Another Tree**: ¿Un árbol es subárbol de otro?
+- **Invert Binary Tree**: Crear el espejo de un árbol
+- **Flatten to Linked List**: Convertir árbol en lista enlazada
+- **Merge Two Trees**: Combinar dos árboles
+
+## Patrón: Comparación de Árboles
+
+Para verificar si dos árboles son iguales, comparamos recursivamente:
+1. Ambos son None → iguales
+2. Uno es None y otro no → diferentes
+3. Valores diferentes → diferentes
+4. Recursivamente comparar izquierda con izquierda Y derecha con derecha
+
+## Subtree: Estrategia
+
+Para ver si `subRoot` es subárbol de `root`:
+1. En cada nodo de `root`, preguntamos: ¿este nodo es la raíz de un árbol idéntico a `subRoot`?
+2. Si no, buscamos recursivamente en izquierda y derecha
+3. Complejidad: O(n × m) donde n = nodos en root, m = nodos en subRoot"""
             ),
             ContentBlock(
                 type="code",
@@ -5007,7 +6403,25 @@ def flatten(root):
                 type="text",
                 content="""# Vistas del Árbol
 
-Diferentes perspectivas de visualización del árbol."""
+## ¿Qué son las "vistas" de un árbol?
+
+Imagina que miras un árbol desde diferentes ángulos:
+- **Right Side View**: Lo que ves mirando desde la derecha (último nodo de cada nivel)
+- **Left Side View**: Lo que ves mirando desde la izquierda (primer nodo de cada nivel)
+- **Top View**: Lo que ves mirando desde arriba
+- **Bottom View**: Lo que ves mirando desde abajo
+- **Boundary Traversal**: Los nodos del "contorno" del árbol
+
+## ¿Cómo resolverlos?
+
+La mayoría usa **BFS (level order)** con un truco específico:
+- **Right view**: Último nodo de cada nivel → `if i == level_size - 1`
+- **Left view**: Primer nodo de cada nivel → `if i == 0`
+- **Top/Bottom view**: Necesitas rastrear la "columna" de cada nodo usando una coordenada horizontal
+
+## Vertical Order Traversal
+
+Asigna una coordenada x a cada nodo (raíz = 0, izquierda = x-1, derecha = x+1). Agrupa por columna."""
             ),
             ContentBlock(
                 type="code",
@@ -5110,7 +6524,23 @@ def bottom_view(root):
                 type="text",
                 content="""# Problemas Avanzados de Árboles
 
-Combinación de técnicas para problemas complejos."""
+## ¿Qué los hace "avanzados"?
+
+Estos problemas combinan múltiples técnicas (DFS + DP, BFS + HashMap, etc.) y requieren pensar creativamente sobre la estructura del árbol.
+
+## Problemas Importantes
+
+| Problema | Técnicas | Dificultad |
+|----------|----------|-----------|
+| House Robber III | DFS + DP en árbol | Hard |
+| Boundary Traversal | DFS izq + hojas + DFS der | Hard |
+| Binary Tree Cameras | DFS + Greedy | Hard |
+| Serialize/Deserialize | Preorder + Queue | Hard |
+| Count Complete Tree Nodes | Binary Search + Recursión | Medium |
+
+## House Robber III: DP en Árboles
+
+Cada nodo retorna DOS valores: (max SI robo este nodo, max si NO robo este nodo). Es la combinación de árboles con DP que debes dominar."""
             ),
             ContentBlock(
                 type="code",
@@ -5219,64 +6649,585 @@ def boundary_of_binary_tree(root):
     Lesson(
         id="bst-intro",
         moduleId="bst",
-        title="Binary Search Trees",
-        description="Propiedades, búsqueda, inserción y eliminación en BST.",
+        title="Binary Search Trees: De Cero a Experto",
+        description="Propiedades, búsqueda, inserción, eliminación, validación y problemas clásicos en BST.",
         order=1,
         difficulty=Difficulty.MEDIUM,
-        estimatedMinutes=55,
+        estimatedMinutes=70,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina una biblioteca donde los libros están organizados así: en cada estante, todos los libros a la izquierda tienen títulos que van ANTES en el alfabeto, y los de la derecha van DESPUÉS. Si buscas "Harry Potter", miras el libro del medio del estante. ¿Va antes o después? Si va después, ignoras toda la mitad izquierda. Repites con la mitad restante. En segundos encuentras tu libro entre miles. Eso es un BST: cada nodo te dice "busca a la izquierda" o "busca a la derecha", eliminando la mitad de opciones cada vez.""",
+        visual_diagram="""## Binary Search Tree
+
+**Propiedad BST:** izquierda < nodo < derecha
+
+```
+              [8]
+             /   \\
+          [3]     [10]
+         /   \\       \\
+       [1]   [6]     [14]
+             / \\      /
+           [4] [7]  [13]
+```
+
+**Inorder traversal:** 1, 3, 4, 6, 7, 8, 10, 13, 14 (siempre ordenado ascendente)
+
+---
+
+### Busqueda de 7 (paso a paso)
+
+| Paso | Nodo actual | Comparacion | Accion |
+|------|-------------|-------------|--------|
+| 1 | **8** | 7 < 8 | Ir a la izquierda |
+| 2 | **3** | 7 > 3 | Ir a la derecha |
+| 3 | **6** | 7 > 6 | Ir a la derecha |
+| 4 | **7** | 7 = 7 | **Encontrado!** (3 pasos en vez de 9) |
+
+---
+
+### Complejidades
+
+| Operacion | Balanceado | Peor caso |
+|-----------|------------|-----------|
+| Busqueda | O(log n) | O(n) |
+| Insercion | O(log n) | O(n) |
+| Eliminacion | O(log n) | O(n) |
+
+> El peor caso ocurre cuando el arbol se degenera en una lista enlazada (todos los nodos a un lado).
+""",
+        core_code_snippet="""# TEMPLATE: Operaciones fundamentales de BST
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+# Búsqueda - O(h)
+def search(root, val):
+    if not root or root.val == val:
+        return root
+    if val < root.val:
+        return search(root.left, val)
+    return search(root.right, val)
+
+# Inserción - O(h)
+def insert(root, val):
+    if not root:
+        return TreeNode(val)
+    if val < root.val:
+        root.left = insert(root.left, val)
+    else:
+        root.right = insert(root.right, val)
+    return root
+
+# Validación - O(n)
+def is_valid(root, lo=float('-inf'), hi=float('inf')):
+    if not root: return True
+    if root.val <= lo or root.val >= hi: return False
+    return is_valid(root.left, lo, root.val) and \\
+           is_valid(root.right, root.val, hi)""",
         content=[
             ContentBlock(
                 type="text",
                 content="""# Binary Search Trees (BST)
 
-Un BST es un árbol binario donde:
-- Todos los nodos del subárbol izquierdo son menores que el root
-- Todos los nodos del subárbol derecho son mayores que el root
+Un BST es un árbol binario con una **regla de oro**: para cualquier nodo, **todos** los valores a su izquierda son menores, y **todos** a su derecha son mayores. Esta propiedad simple permite búsquedas ultrarrápidas.
 
-## Complejidades
-- Búsqueda, inserción, eliminación: O(h) donde h es la altura
-- Balanceado: O(log n), Desbalanceado: O(n)"""
+## ¿Por qué importan los BST?
+
+| Estructura | Búsqueda | Inserción | Ordenado |
+|-----------|----------|-----------|----------|
+| Array | O(n) | O(1) | No |
+| Array ordenado | O(log n) | O(n) | Sí |
+| **BST balanceado** | **O(log n)** | **O(log n)** | **Sí** |
+| Hash Table | O(1) | O(1) | No |
+
+Los BST combinan lo mejor de ambos mundos: búsqueda rápida Y inserción rápida, manteniendo los datos ordenados."""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## La Propiedad BST (entenderla al 100%)
+
+Para **cada nodo** en el árbol:
+- Todo el subárbol izquierdo tiene valores **estrictamente menores**
+- Todo el subárbol derecho tiene valores **estrictamente mayores**
+
+### Error común de entrevista
+
+```
+        5
+       / \\
+      3   7
+     / \\
+    2   8  ← ¡ESTO NO ES BST!
+```
+
+¿Por qué no es BST? Porque 8 está en el subárbol izquierdo de 5, pero 8 > 5. No basta con que cada nodo sea mayor que su hijo izquierdo y menor que su hijo derecho. La regla aplica a **todo el subárbol**."""
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="bst-q1",
+                    question="¿Cuál de estos árboles es un BST válido?",
+                    options=[
+                        "Root=5, izq=3(izq=1,der=6), der=8",
+                        "Root=5, izq=3(izq=1,der=4), der=8(izq=6,der=9)",
+                        "Root=5, izq=3(izq=1,der=4), der=8(izq=2,der=9)",
+                        "Root=5, izq=7(izq=1,der=4), der=8"
+                    ],
+                    correct_index=1,
+                    explanation="Opción B es correcta: 1<3<4<5<6<8<9. El inorder da una secuencia ascendente. La opción A falla porque 6 está en el subárbol izquierdo de 5 pero 6>5. La C falla porque 2<5 pero está a la derecha. La D falla porque 7>5 pero está a la izquierda.",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Operación 1: Búsqueda en BST
+
+La búsqueda es la operación más elegante. En cada nodo tomamos una decisión: izquierda o derecha. Eliminamos **la mitad** del árbol en cada paso.
+
+### Paso a paso visual
+
+Buscar 7 en el BST:
+```
+        8         → 7 < 8, ir izquierda
+       / \\
+      3   10      → 7 > 3, ir derecha
+     / \\
+    1   6         → 7 > 6, ir derecha
+       / \\
+      4   7       → ¡Encontrado! ✓
+```
+Solo 4 comparaciones para encontrarlo entre 9 nodos."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Búsqueda en BST - O(h)
-def search_bst(root, val):
+                content='''class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+# Búsqueda RECURSIVA - más elegante
+def search_bst(root: TreeNode, val: int) -> TreeNode:
+    """
+    Busca un valor en el BST.
+    En cada nodo: si val < nodo, va izquierda; si val > nodo, va derecha.
+    
+    Complejidad: O(h) tiempo, O(h) espacio (stack de recursión)
+    """
     if not root or root.val == val:
         return root
     if val < root.val:
         return search_bst(root.left, val)
     return search_bst(root.right, val)
 
-# Inserción en BST - O(h)
-def insert_bst(root, val):
-    if not root:
-        return TreeNode(val)
-    if val < root.val:
-        root.left = insert_bst(root.left, val)
-    else:
-        root.right = insert_bst(root.right, val)
-    return root
-
-# Validar BST
-def is_valid_bst(root, min_val=float('-inf'), max_val=float('inf')):
-    if not root:
-        return True
-    if root.val <= min_val or root.val >= max_val:
-        return False
-    return (is_valid_bst(root.left, min_val, root.val) and
-            is_valid_bst(root.right, root.val, max_val))'''
+# Búsqueda ITERATIVA - más eficiente en espacio
+def search_bst_iterative(root: TreeNode, val: int) -> TreeNode:
+    """
+    Misma lógica pero sin recursión.
+    Complejidad: O(h) tiempo, O(1) espacio ← mejor!
+    """
+    while root and root.val != val:
+        if val < root.val:
+            root = root.left
+        else:
+            root = root.right
+    return root'''
             ),
             ContentBlock(
                 type="info",
-                content="**Propiedad clave**: El recorrido inorder de un BST produce los elementos en orden ascendente."
+                content="**Tip de entrevista**: Si el entrevistador pregunta 'recursivo o iterativo', di que prefieres iterativo para BST porque usa O(1) espacio en vez de O(h). Pero menciona que recursivo es más legible. Muestra que conoces ambos approaches."
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Operación 2: Inserción en BST
+
+Insertar es como buscar, pero cuando llegas a un espacio vacío (`None`), ahí colocas el nuevo nodo. El nuevo nodo **siempre será una hoja**.
+
+### Paso a paso visual
+
+Insertar 5 en el BST:
+```
+        8              8
+       / \\            / \\
+      3   10    →    3   10
+     / \\            / \\
+    1   6          1   6
+                      / \\
+                     5   (ya estaba: 6)
+```
+5 < 8 → izquierda, 5 > 3 → derecha, 5 < 6 → izquierda, `None` → ¡insertar aquí!"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Inserción en BST
+def insert_bst(root: TreeNode, val: int) -> TreeNode:
+    """
+    Inserta un valor manteniendo la propiedad BST.
+    El nuevo nodo siempre se inserta como hoja.
+    
+    Complejidad: O(h) tiempo, O(h) espacio (recursión)
+    """
+    # Caso base: encontramos el lugar vacío
+    if not root:
+        return TreeNode(val)
+    
+    # Decidir: izquierda o derecha
+    if val < root.val:
+        root.left = insert_bst(root.left, val)
+    elif val > root.val:
+        root.right = insert_bst(root.right, val)
+    # Si val == root.val, depende del problema (ignorar o duplicar)
+    
+    return root  # Retornar el root sin cambios
+
+# Versión iterativa
+def insert_bst_iterative(root: TreeNode, val: int) -> TreeNode:
+    """Inserción sin recursión - O(1) espacio extra."""
+    new_node = TreeNode(val)
+    if not root:
+        return new_node
+    
+    current = root
+    while True:
+        if val < current.val:
+            if not current.left:
+                current.left = new_node
+                break
+            current = current.left
+        else:
+            if not current.right:
+                current.right = new_node
+                break
+            current = current.right
+    
+    return root'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Operación 3: Eliminación en BST (La más difícil)
+
+Eliminar es más complejo porque debemos mantener la propiedad BST. Hay **3 casos**:
+
+### Caso 1: Nodo hoja (sin hijos)
+Simplemente lo removemos. Fácil.
+
+### Caso 2: Nodo con UN hijo
+Reemplazamos el nodo con su único hijo. Como un eslabón que se quita de una cadena.
+
+### Caso 3: Nodo con DOS hijos (¡el tricky!)
+Necesitamos un **reemplazo** que mantenga la propiedad BST. Usamos el **sucesor inorder**: el nodo más pequeño del subárbol derecho.
+
+```
+Eliminar 3:
+        8                  8
+       / \\                / \\
+     [3]  10      →      4   10
+     / \\                / 
+    1   6              1   6
+       /
+      4
+      
+Sucesor inorder de 3 = 4 (el menor de su subárbol derecho)
+Copiamos 4 al lugar de 3, y eliminamos el 4 original.
+```"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Eliminación en BST - Los 3 casos
+def delete_bst(root: TreeNode, key: int) -> TreeNode:
+    """
+    Elimina un nodo del BST y mantiene la propiedad BST.
+    
+    3 casos:
+    1. Hoja → eliminar directamente
+    2. Un hijo → reemplazar con ese hijo
+    3. Dos hijos → reemplazar con sucesor inorder
+    
+    Complejidad: O(h) tiempo
+    """
+    if not root:
+        return None
+    
+    # Buscar el nodo a eliminar
+    if key < root.val:
+        root.left = delete_bst(root.left, key)
+    elif key > root.val:
+        root.right = delete_bst(root.right, key)
+    else:
+        # ¡Encontrado! Ahora eliminarlo
+        
+        # Caso 1 y 2: 0 o 1 hijo
+        if not root.left:
+            return root.right
+        if not root.right:
+            return root.left
+        
+        # Caso 3: Dos hijos
+        # Encontrar sucesor inorder (menor del subárbol derecho)
+        successor = root.right
+        while successor.left:
+            successor = successor.left
+        
+        # Copiar valor del sucesor
+        root.val = successor.val
+        
+        # Eliminar el sucesor de su posición original
+        root.right = delete_bst(root.right, successor.val)
+    
+    return root'''
+            ),
+            ContentBlock(
+                type="warning",
+                content="**Error frecuente en entrevistas**: Olvidar manejar los 3 casos de eliminación. Siempre verifica: ¿sin hijos? ¿un hijo? ¿dos hijos? El caso de dos hijos es el que más preguntan."
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="bst-q2",
+                    question="Al eliminar un nodo con dos hijos en un BST, ¿cuál es el sucesor inorder?",
+                    options=[
+                        "El hijo izquierdo del nodo",
+                        "El nodo más grande del subárbol izquierdo",
+                        "El nodo más pequeño del subárbol derecho",
+                        "El padre del nodo"
+                    ],
+                    correct_index=2,
+                    explanation="El sucesor inorder es el nodo más PEQUEÑO del subárbol DERECHO. Es el valor que viene 'justo después' en orden. También podríamos usar el predecesor inorder (el más GRANDE del subárbol IZQUIERDO). Ambos mantienen la propiedad BST.",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Validar BST - Problema Clásico de Entrevista
+
+Este es uno de los problemas más frecuentes. La trampa es que NO basta con verificar nodo > hijo_izquierdo y nodo < hijo_derecho.
+
+### El enfoque correcto: Rango válido
+
+Cada nodo tiene un **rango permitido** (min, max). Al ir a la izquierda, el max se reduce. Al ir a la derecha, el min se aumenta.
+
+```
+        8  (rango: -∞ a +∞)
+       / \\
+      3   10
+(rango:   (rango:
+-∞ a 8)  8 a +∞)
+```"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Validar BST - El approach correcto con rangos
+def is_valid_bst(root: TreeNode) -> bool:
+    """
+    Verifica si un árbol binario es un BST válido.
+    
+    Estrategia: Cada nodo tiene un rango (min, max) permitido.
+    - Al ir a la izquierda: max = valor del padre
+    - Al ir a la derecha: min = valor del padre
+    
+    Complejidad: O(n) tiempo, O(h) espacio
+    """
+    def validate(node, min_val, max_val):
+        if not node:
+            return True
+        
+        # ¿El valor está fuera de rango?
+        if node.val <= min_val or node.val >= max_val:
+            return False
+        
+        # Izquierda: el max se acota al valor actual
+        # Derecha: el min se acota al valor actual
+        return (validate(node.left, min_val, node.val) and
+                validate(node.right, node.val, max_val))
+    
+    return validate(root, float('-inf'), float('inf'))
+
+# ALTERNATIVA: Usando inorder traversal
+def is_valid_bst_inorder(root: TreeNode) -> bool:
+    """
+    El inorder de un BST siempre es ascendente.
+    Si encontramos un valor <= al anterior, NO es BST.
+    """
+    prev = float('-inf')
+    
+    def inorder(node):
+        nonlocal prev
+        if not node:
+            return True
+        
+        if not inorder(node.left):
+            return False
+        
+        if node.val <= prev:
+            return False
+        prev = node.val
+        
+        return inorder(node.right)
+    
+    return inorder(root)'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Propiedad Clave: Inorder = Ordenado
+
+La propiedad más poderosa de los BST: el **recorrido inorder** siempre produce los elementos en **orden ascendente**.
+
+Esto es útil para:
+- **Validar BST** (verificar que inorder es ascendente)
+- **Kth smallest** (hacer inorder y parar en el k-ésimo)
+- **Convertir BST a sorted array** (inorder completo)
+- **Encontrar sucesor/predecesor** inorder"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Kth Smallest Element in BST
+def kth_smallest(root: TreeNode, k: int) -> int:
+    """
+    Encuentra el k-ésimo elemento más pequeño del BST.
+    
+    Estrategia: Inorder traversal iterativo.
+    El inorder visita nodos en orden ascendente.
+    Paramos en el k-ésimo visitado.
+    
+    Complejidad: O(H + k) tiempo, O(H) espacio
+    """
+    stack = []
+    current = root
+    count = 0
+    
+    while stack or current:
+        # Ir lo más a la izquierda posible
+        while current:
+            stack.append(current)
+            current = current.left
+        
+        # Procesar nodo actual
+        current = stack.pop()
+        count += 1
+        if count == k:
+            return current.val  # ¡K-ésimo encontrado!
+        
+        # Explorar subárbol derecho
+        current = current.right
+    
+    return -1
+
+# Lowest Common Ancestor en BST
+def lca_bst(root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode:
+    """
+    En un BST, el LCA es el primer nodo cuyo valor está
+    entre p y q. Más simple que en árboles generales.
+    
+    Complejidad: O(h) tiempo, O(1) espacio
+    """
+    current = root
+    while current:
+        if p.val < current.val and q.val < current.val:
+            current = current.left   # Ambos a la izquierda
+        elif p.val > current.val and q.val > current.val:
+            current = current.right  # Ambos a la derecha
+        else:
+            return current  # Se "separan" aquí → es el LCA
+    return None'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="bst-q3",
+                    question="En un BST con nodos [1,2,3,4,5,6,7], ¿cuál es la altura si se insertan en orden?",
+                    options=[
+                        "3 (árbol balanceado perfectamente)",
+                        "7 (se convierte en una lista enlazada)",
+                        "4 (logarítmico redondeado)",
+                        "Depende de la implementación"
+                    ],
+                    correct_index=1,
+                    explanation="Si insertas 1,2,3,4,5,6,7 en orden, cada nuevo nodo va siempre a la derecha. El árbol se degrada a una lista enlazada con altura n=7. Esto da búsqueda O(n) en vez de O(log n). Por eso existen los árboles balanceados (AVL, Red-Black).",
+                    difficulty="hard"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## El Problema del Desbalanceo
+
+Un BST puede degenerarse en una **lista enlazada** si los elementos se insertan en orden:
+
+```
+Insertar: 1, 2, 3, 4, 5
+
+  1                    vs       Balanceado:
+   \\                              3
+    2                            / \\
+     \\                          2   4
+      3                        /     \\
+       \\                      1       5
+        4
+         \\                  Altura: 3
+          5                 Búsqueda: O(log n)
+          
+Altura: 5
+Búsqueda: O(n) 😢
+```
+
+**Solución**: Usar árboles **autobalanceados** (AVL, Red-Black) que garantizan O(log n). En Python, `sorted containers` usa árboles B. En Java, `TreeMap` usa Red-Black."""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Construir BST Balanceado desde Array Ordenado
+
+Si tienes un array ordenado y quieres el BST más balanceado posible, usa el **medio como raíz** recursivamente. Esto garantiza altura mínima = O(log n)."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Convertir array ordenado a BST balanceado
+def sorted_array_to_bst(nums: list[int]) -> TreeNode:
+    """
+    Construye un BST balanceado desde un array ordenado.
+    
+    Estrategia: El elemento del medio es la raíz.
+    La mitad izquierda forma el subárbol izquierdo.
+    La mitad derecha forma el subárbol derecho.
+    
+    Complejidad: O(n) tiempo, O(log n) espacio
+    """
+    if not nums:
+        return None
+    
+    mid = len(nums) // 2
+    root = TreeNode(nums[mid])
+    root.left = sorted_array_to_bst(nums[:mid])
+    root.right = sorted_array_to_bst(nums[mid + 1:])
+    
+    return root
+
+# Ejemplo:
+# Input: [1, 2, 3, 4, 5, 6, 7]
+# Output:
+#        4
+#       / \\
+#      2   6
+#     / \\ / \\
+#    1  3 5  7
+# ¡Perfectamente balanceado!'''
+            ),
+            ContentBlock(
+                type="info",
+                content="**Propiedad clave**: El recorrido inorder de un BST produce los elementos en orden ascendente. Esto es la base de muchos problemas: validar BST, encontrar kth smallest, encontrar sucesor/predecesor, etc."
             )
         ],
         codeExamples=[
             CodeExample(
                 title="Kth Smallest Element in BST",
-                description="Encontrar el k-ésimo elemento más pequeño",
+                description="Usando inorder iterativo para encontrar el k-ésimo menor",
                 code='''def kth_smallest(root, k):
     stack = []
     current = root
@@ -5296,6 +7247,97 @@ def is_valid_bst(root, min_val=float('-inf'), max_val=float('inf')):
     
     return -1''',
                 language="python"
+            ),
+            CodeExample(
+                title="Inorder Successor in BST",
+                description="Encontrar el siguiente nodo en orden (siguiente valor mayor)",
+                code='''def inorder_successor(root, p):
+    """
+    Caso 1: Si p tiene hijo derecho → el menor del subárbol derecho
+    Caso 2: Si no → el primer ancestro donde p está en subárbol izq
+    """
+    successor = None
+    current = root
+    
+    while current:
+        if p.val < current.val:
+            successor = current  # Candidato a sucesor
+            current = current.left
+        else:
+            current = current.right
+    
+    return successor
+
+# Ejemplo: En BST [1,3,4,6,7,8,10,13,14]
+# Sucesor de 6 = 7 (hijo derecho existe → menor del subárbol der)
+# Sucesor de 7 = 8 (no hay hijo derecho → primer ancestro mayor)''',
+                language="python"
+            ),
+            CodeExample(
+                title="BST Iterator (Problema frecuente en entrevistas)",
+                description="Implementar next() y hasNext() que recorran el BST en orden",
+                code='''class BSTIterator:
+    """
+    Iterador para BST que devuelve valores en orden ascendente.
+    next() y hasNext() deben ser O(1) amortizado.
+    
+    Idea: Simular inorder traversal con un stack.
+    Mantener el stack con la rama izquierda pendiente.
+    """
+    def __init__(self, root):
+        self.stack = []
+        self._push_left(root)
+    
+    def _push_left(self, node):
+        """Push todos los nodos izquierdos al stack."""
+        while node:
+            self.stack.append(node)
+            node = node.left
+    
+    def next(self) -> int:
+        """Retorna el siguiente menor valor."""
+        node = self.stack.pop()
+        # Si tiene hijo derecho, push su rama izquierda
+        if node.right:
+            self._push_left(node.right)
+        return node.val
+    
+    def hasNext(self) -> bool:
+        return len(self.stack) > 0
+
+# Uso:
+# it = BSTIterator(root)
+# while it.hasNext():
+#     print(it.next())  # Imprime en orden ascendente''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="bst-final-1",
+                question="¿Cuál es la diferencia principal entre buscar el LCA en un BST vs un árbol binario general?",
+                options=[
+                    "No hay diferencia, se usa el mismo algoritmo",
+                    "En BST podemos usar la propiedad de ordenamiento para decidir si ir izquierda o derecha, haciéndolo O(h) sin visitar todos los nodos",
+                    "En BST es más lento porque hay que verificar la propiedad BST",
+                    "Solo se puede encontrar LCA en BST, no en árboles generales"
+                ],
+                correct_index=1,
+                explanation="En un BST, si ambos valores son menores que el nodo actual, el LCA está a la izquierda. Si ambos son mayores, está a la derecha. Si se 'separan' (uno menor, otro mayor), el nodo actual ES el LCA. Esto permite O(h) sin visitar todo el árbol, mientras que en un árbol general necesitas O(n).",
+                difficulty="hard"
+            ),
+            QuizQuestion(
+                id="bst-final-2",
+                question="¿Cuál operación de BST es la más compleja de implementar?",
+                options=[
+                    "Búsqueda",
+                    "Inserción",
+                    "Eliminación",
+                    "Validación"
+                ],
+                correct_index=2,
+                explanation="La eliminación tiene 3 casos diferentes que manejar (hoja, un hijo, dos hijos). El caso de dos hijos requiere encontrar el sucesor inorder, copiar su valor, y luego eliminar el sucesor recursivamente. Es el caso más preguntado en entrevistas precisamente por su complejidad.",
+                difficulty="easy"
             )
         ],
         prerequisites=["trees-intro"],
@@ -5306,74 +7348,338 @@ def is_valid_bst(root, min_val=float('-inf'), max_val=float('inf')):
     Lesson(
         id="heaps-intro",
         moduleId="heaps",
-        title="Heaps y Priority Queues",
-        description="Min/Max heaps, heapify y aplicaciones.",
+        title="Heaps y Priority Queues: Fundamentos",
+        description="Entiende cómo funcionan los heaps internamente, domina heapq de Python y aprende cuándo usarlos.",
         order=1,
         difficulty=Difficulty.MEDIUM,
-        estimatedMinutes=50,
+        estimatedMinutes=60,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina una sala de emergencias. No atienden por orden de llegada, sino por **gravedad**: el paciente más grave siempre pasa primero, sin importar cuándo llegó. Eso es un heap (o priority queue): una estructura que siempre te da el elemento más importante (el menor o mayor) en O(1), y cuando lo extraes, el siguiente más importante sube automáticamente. Es como una fila mágica que siempre se reorganiza para que el VIP esté al frente.""",
+        visual_diagram="""## Min-Heap
+
+**Propiedad:** padre <= hijos (el menor siempre arriba)
+
+### Representacion visual
+
+```
+  Arbol:                     Array interno:
+        [1]                  [1, 3, 2, 7, 6, 4, 5]
+       /   \\                  0  1  2  3  4  5  6
+     [3]   [2]
+    /  \\   / \\              Padre de i: (i-1)//2
+  [7] [6][4] [5]            Hijo izq:   2*i + 1
+                             Hijo der:   2*i + 2
+```
+
+---
+
+### Operaciones
+
+| Operacion | Complejidad | Python (`heapq`) |
+|-----------|-------------|-------------------|
+| Insertar | O(log n) | `heappush(h, val)` |
+| Extraer min | O(log n) | `heappop(h)` |
+| Ver min | O(1) | `h[0]` |
+| Heapify | O(n) | `heapify(lista)` |
+| Push + Pop | O(log n) | `heappushpop(h, val)` |
+
+> **Importante:** Python SOLO tiene min-heap. Para max-heap: insertar negativos (`-val`).
+""",
+        core_code_snippet="""import heapq
+
+# Min-heap básico
+h = []
+heapq.heappush(h, 5)      # Insertar
+heapq.heappush(h, 1)
+heapq.heappush(h, 3)
+print(h[0])                # Ver mínimo: 1
+smallest = heapq.heappop(h) # Extraer mínimo: 1
+
+# Max-heap (truco con negativos)
+max_h = []
+heapq.heappush(max_h, -5)
+heapq.heappush(max_h, -1)
+largest = -heapq.heappop(max_h)  # 5
+
+# Heapify: convertir lista en heap O(n)
+nums = [3, 1, 4, 1, 5, 9]
+heapq.heapify(nums)  # nums ahora es un heap válido
+
+# Top K: mantener heap de tamaño k
+def top_k(nums, k):
+    heap = nums[:k]
+    heapq.heapify(heap)
+    for n in nums[k:]:
+        if n > heap[0]:
+            heapq.heapreplace(heap, n)
+    return heap""",
         content=[
             ContentBlock(
                 type="text",
                 content="""# Heaps y Priority Queues
 
-Un heap es un árbol binario completo donde cada nodo es menor (min-heap) o mayor (max-heap) que sus hijos.
+Un **heap** (o montículo) es un árbol binario **completo** con una propiedad especial:
+- **Min-heap**: cada padre es ≤ que sus hijos → el mínimo está en la raíz
+- **Max-heap**: cada padre es ≥ que sus hijos → el máximo está en la raíz
 
-## Operaciones
-- **push/insert**: O(log n)
-- **pop/extract**: O(log n)
-- **peek/top**: O(1)
-- **heapify**: O(n)"""
+## ¿Cuándo necesitas un Heap?
+
+| Problema | ¿Por qué Heap? |
+|----------|----------------|
+| "Encuentra los K más grandes/pequeños" | Heap de tamaño K |
+| "Mediana en stream de datos" | Dos heaps |
+| "Merge K listas ordenadas" | Heap de K elementos |
+| "Siguiente evento más cercano" | Priority Queue |
+| "Task scheduling" | Priority Queue |
+
+### Regla rápida
+> Si ves **"K"** o **"mayor/menor"** en el problema, piensa en Heap."""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## ¿Cómo funciona internamente?
+
+El heap se almacena como un **array**, pero lo pensamos como un árbol:
+
+```
+Array:  [1, 3, 2, 7, 6, 4, 5]
+Index:   0  1  2  3  4  5  6
+
+Árbol:         1          ← índice 0
+              / \\
+             3   2        ← índices 1, 2
+            / \\ / \\
+           7  6 4  5      ← índices 3, 4, 5, 6
+```
+
+**Fórmulas de navegación** (memorízalas):
+- Padre de `i`: `(i - 1) // 2`
+- Hijo izquierdo de `i`: `2 * i + 1`
+- Hijo derecho de `i`: `2 * i + 2`
+
+Cuando insertas, el elemento "sube" hasta encontrar su lugar (sift up).
+Cuando extraes el mínimo, el último elemento se pone en la raíz y "baja" (sift down)."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
                 content='''import heapq
 
-# Python usa min-heap por defecto
-nums = [3, 1, 4, 1, 5, 9, 2, 6]
-heapq.heapify(nums)  # Convierte lista en heap - O(n)
+# =============================================
+# OPERACIONES BÁSICAS DE HEAPQ
+# =============================================
 
-heapq.heappush(nums, 0)  # Insertar - O(log n)
-smallest = heapq.heappop(nums)  # Extraer mínimo - O(log n)
+# 1. Crear heap desde lista - O(n)
+nums = [3, 1, 4, 1, 5, 9, 2, 6]
+heapq.heapify(nums)  # Modifica in-place
+print(nums)  # [1, 1, 2, 6, 5, 9, 4, 3] - propiedad heap
+
+# 2. Insertar elemento - O(log n)
+heapq.heappush(nums, 0)
+print(nums[0])  # 0 - el nuevo mínimo
+
+# 3. Extraer mínimo - O(log n)
+smallest = heapq.heappop(nums)
 print(smallest)  # 0
 
-# Ver mínimo sin extraer
+# 4. Ver mínimo sin extraer - O(1)
 print(nums[0])  # 1
 
-# Para max-heap, usa negativos
+# 5. Push + Pop en una operación - O(log n)
+# Más eficiente que hacer push y pop por separado
+result = heapq.heappushpop(nums, 3)  # Push 3, luego pop min
+print(result)  # 1 (el min anterior)
+
+# 6. Top K y Bottom K
+print(heapq.nlargest(3, [3, 1, 4, 1, 5, 9]))   # [9, 5, 4]
+print(heapq.nsmallest(3, [3, 1, 4, 1, 5, 9]))   # [1, 1, 3]'''
+            ),
+            ContentBlock(
+                type="warning",
+                content="**Python solo tiene min-heap**. Para max-heap, usa el truco de los negativos: inserta `-val` y al extraer niega el resultado: `-heapq.heappop(h)`. Para tuplas, Python compara por el primer elemento, luego el segundo, etc."
+            ),
+            ContentBlock(
+                type="text",
+                content="""## El truco del Max-Heap en Python
+
+Como `heapq` solo hace min-heap, para max-heap multiplicamos por -1:
+
+```python
+import heapq
+
+# MAX-HEAP usando negativos
 max_heap = []
-for n in [3, 1, 4, 1, 5]:
-    heapq.heappush(max_heap, -n)
+heapq.heappush(max_heap, -5)   # Insertar 5
+heapq.heappush(max_heap, -1)   # Insertar 1
+heapq.heappush(max_heap, -8)   # Insertar 8
 
-largest = -heapq.heappop(max_heap)  # 5
+# Extraer máximo
+largest = -heapq.heappop(max_heap)  # 8
+print(largest)  # 8
 
-# nlargest y nsmallest
-print(heapq.nlargest(3, [3, 1, 4, 1, 5, 9]))  # [9, 5, 4]
-print(heapq.nsmallest(3, [3, 1, 4, 1, 5, 9]))  # [1, 1, 3]'''
-            )
-        ],
-        codeExamples=[
-            CodeExample(
-                title="Kth Largest Element",
-                description="Encontrar el k-ésimo elemento más grande",
-                code='''import heapq
+# Ver máximo
+print(-max_heap[0])  # 5
+```"""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Heaps con Tuplas - Prioridad Custom
 
-def find_kth_largest(nums, k):
-    # Mantener heap de tamaño k
+Cuando necesitas prioridad por algo más que el valor numérico, usa **tuplas**. Python compara tuplas elemento por elemento:
+
+```python
+# (prioridad, desempate, dato)
+heap = []
+heapq.heappush(heap, (3, 0, "tarea C"))
+heapq.heappush(heap, (1, 1, "tarea A"))
+heapq.heappush(heap, (1, 2, "tarea B"))
+
+# Sale primero: (1, 1, "tarea A") - menor prioridad, luego desempate
+```
+
+El segundo elemento (desempate) es crucial cuando las prioridades son iguales y los datos no son comparables."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Kth Largest Element - El problema más clásico de heaps
+import heapq
+
+def find_kth_largest(nums: list[int], k: int) -> int:
+    """
+    Encuentra el k-ésimo elemento más grande del array.
+    
+    Estrategia: Mantener un min-heap de tamaño k.
+    Al final, la raíz del heap es el k-ésimo más grande.
+    
+    ¿Por qué funciona?
+    - El heap guarda los K más grandes vistos hasta ahora
+    - Al insertar uno nuevo, si es mayor que el mínimo del heap,
+      reemplaza al más pequeño de los K grandes
+    - El mínimo del heap = el k-ésimo más grande
+    
+    Complejidad: O(n log k) tiempo, O(k) espacio
+    Mejor que ordenar: O(n log n)
+    """
     heap = []
     for num in nums:
         heapq.heappush(heap, num)
         if len(heap) > k:
-            heapq.heappop(heap)
-    return heap[0]
+            heapq.heappop(heap)  # Eliminar el menor
+    
+    return heap[0]  # El k-ésimo más grande
 
-# O usando nlargest
-def find_kth_largest_v2(nums, k):
+# Versión optimizada con heapify
+def find_kth_largest_v2(nums: list[int], k: int) -> int:
+    """Alternativa: negar y usar min-heap"""
     return heapq.nlargest(k, nums)[-1]
 
-print(find_kth_largest([3,2,1,5,6,4], 2))  # 5''',
+# Ejemplo
+print(find_kth_largest([3,2,1,5,6,4], 2))  # 5
+# Heap pasa por: [3] → [2,3] → [1,2,3]→pop 1 → [2,3] 
+# → [2,3,5]→pop 2 → [3,5] → [3,5,6]→pop 3 → [5,6]
+# → [4,5,6]→pop 4 → [5,6] → respuesta: 5'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="heap-q1",
+                    question="Para encontrar el k-ésimo MAYOR elemento, ¿qué tipo de heap usas y de qué tamaño?",
+                    options=[
+                        "Max-heap de tamaño n",
+                        "Min-heap de tamaño k",
+                        "Max-heap de tamaño k",
+                        "Min-heap de tamaño n-k"
+                    ],
+                    correct_index=1,
+                    explanation="Usamos un min-heap de tamaño k. El heap contiene los k elementos más grandes vistos hasta ahora. La raíz (el menor de esos k grandes) es exactamente el k-ésimo más grande. Si usáramos max-heap de tamaño n, sería O(n log n) — igual que ordenar.",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="info",
+                content="**Cuándo usar `nlargest`/`nsmallest` vs heap manual**: Para k pequeño comparado con n, `nlargest(k, nums)` es eficiente O(n log k). Para k cercano a n, es mejor `sorted(nums)`. Para k=1, usa simplemente `max()` o `min()` que son O(n)."
+            )
+        ],
+        codeExamples=[
+            CodeExample(
+                title="Top K Frequent Elements",
+                description="Encontrar los K elementos que más se repiten. Combina Counter + Heap.",
+                code='''from collections import Counter
+import heapq
+
+def top_k_frequent(nums: list[int], k: int) -> list[int]:
+    """
+    Retorna los k elementos más frecuentes.
+    
+    Estrategia: Contar frecuencias + heap de tamaño k
+    Complejidad: O(n log k)
+    """
+    count = Counter(nums)
+    
+    # Min-heap de tamaño k por frecuencia
+    # Tupla: (frecuencia, número)
+    return heapq.nlargest(k, count.keys(), key=count.get)
+
+# O manual para entender mejor:
+def top_k_frequent_manual(nums, k):
+    count = Counter(nums)
+    heap = []  # min-heap de (freq, num)
+    
+    for num, freq in count.items():
+        heapq.heappush(heap, (freq, num))
+        if len(heap) > k:
+            heapq.heappop(heap)
+    
+    return [num for freq, num in heap]
+
+print(top_k_frequent([1,1,1,2,2,3], 2))  # [1, 2]''',
                 language="python"
+            ),
+            CodeExample(
+                title="Sort Characters By Frequency",
+                description="Ordenar un string por frecuencia de caracteres (de mayor a menor)",
+                code='''from collections import Counter
+import heapq
+
+def frequency_sort(s: str) -> str:
+    """
+    Ordena caracteres por frecuencia descendente.
+    "tree" → "eert" o "eetr"
+    
+    Complejidad: O(n log k) donde k = caracteres únicos
+    """
+    count = Counter(s)
+    
+    # Max-heap por frecuencia (negativos)
+    heap = [(-freq, char) for char, freq in count.items()]
+    heapq.heapify(heap)
+    
+    result = []
+    while heap:
+        freq, char = heapq.heappop(heap)
+        result.append(char * (-freq))
+    
+    return ''.join(result)
+
+print(frequency_sort("tree"))    # "eetr"
+print(frequency_sort("cccaaa"))  # "aaaccc" o "cccaaa"''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="heap-final-1",
+                question="heapq.heapify(nums) tiene complejidad O(n), no O(n log n). ¿Por qué?",
+                options=[
+                    "Porque solo mira la raíz",
+                    "Porque hace sift-down desde la mitad del array hacia arriba, y la mayoría de nodos están cerca de las hojas donde el sift-down es barato",
+                    "Porque usa un algoritmo especial que no se puede explicar fácilmente",
+                    "Porque Python está optimizado internamente"
+                ],
+                correct_index=1,
+                explanation="Heapify usa sift-down empezando desde el penúltimo nivel. La mitad de los nodos (hojas) no necesitan moverse. Un cuarto se mueve máximo 1 nivel, un octavo 2 niveles, etc. La suma total es O(n). Si hicieras n inserciones individuales (sift-up), sería O(n log n).",
+                difficulty="hard"
             )
         ],
         prerequisites=[],
@@ -5383,34 +7689,92 @@ print(find_kth_largest([3,2,1,5,6,4], 2))  # 5''',
     Lesson(
         id="heaps-aplicaciones",
         moduleId="heaps",
-        title="Aplicaciones de Heaps",
-        description="Merge k sorted lists, top k elements, median finding.",
+        title="Aplicaciones Avanzadas de Heaps",
+        description="Merge k sorted lists, running median, task scheduling y más patrones con heaps.",
         order=2,
         difficulty=Difficulty.MEDIUM,
-        estimatedMinutes=55,
+        estimatedMinutes=65,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina que diriges un restaurante con 5 cocineros. Cada cocinero tiene una fila de pedidos ordenados por hora. Necesitas servir TODOS los platos en orden. ¿Cómo? Miras el primer plato de cada cocinero, eliges el más urgente, lo sirves, y miras el siguiente de ESE cocinero. El heap mantiene los 5 'primeros platos' y siempre te dice cuál va primero. Para la mediana, imagina dos filas: una de los bajos y otra de los altos. El más alto de los bajos y el más bajo de los altos te dan la mediana al instante.""",
+        visual_diagram="""## Patrones de Heap en Entrevistas
+
+### 1. Top K Elements (min-heap de tamano k)
+
+```
+  Input: [3, 1, 5, 2, 4]   k = 3
+
+  Heap mantiene los 3 mas grandes: [3, 4, 5]
+  Raiz = 3 = el 3er mas grande
+```
+
+---
+
+### 2. Merge K Sorted (min-heap de k cabezas)
+
+```
+  Lista 1: [1, 4, 7]  ─┐
+  Lista 2: [2, 5, 8]  ─┼─►  Heap: [1, 2, 3]  →  saca 1
+  Lista 3: [3, 6, 9]  ─┘    mete 4 de Lista 1
+                             Heap: [2, 3, 4]  →  saca 2
+```
+
+---
+
+### 3. Running Median (dos heaps)
+
+```
+  max-heap (mitad baja)  |  min-heap (mitad alta)
+       [3, 1]            |       [5, 7]
+        ↑ top=3          |        ↑ top=5
+
+  Mediana = (3 + 5) / 2 = 4.0
+```
+
+---
+
+| Patron | Estructura | Complejidad | Uso tipico |
+|--------|-----------|-------------|------------|
+| Top K | Min-heap de tamano k | O(n log k) | K mas grandes/pequenos |
+| Merge K | Min-heap de k cabezas | O(N log k) | Unir K listas ordenadas |
+| Mediana | Dos heaps balanceados | O(log n) por insercion | Mediana en streaming |
+""",
         content=[
             ContentBlock(
                 type="text",
-                content="""# Aplicaciones de Heaps
+                content="""# Aplicaciones Avanzadas de Heaps
 
-## Patrones Comunes
+Los heaps aparecen constantemente en entrevistas FAANG. Aquí cubrimos los **3 patrones más importantes** que debes dominar.
 
-1. **Top K Elements**: Mantener heap de tamaño k
-2. **Merge K Sorted**: Usar heap para el merge
-3. **Running Median**: Dos heaps (max y min)
-4. **Task Scheduling**: Priority queue por deadlines"""
+## Patrón 1: Merge K Sorted Lists
+
+**Problema**: Tienes K listas ya ordenadas. Mézclalas en una sola lista ordenada.
+
+**Idea**: Mantener un heap con los K elementos "cabeza" (uno de cada lista). Extraer el menor, y meter el siguiente de esa misma lista.
+
+**¿Por qué heap?** Sin heap necesitarías buscar el mínimo entre K listas en cada paso = O(K). Con heap, extraer mínimo y insertar siguiente = O(log K)."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
                 content='''import heapq
 
-# Merge K Sorted Lists
-def merge_k_lists(lists):
+def merge_k_lists(lists: list[list[int]]) -> list[int]:
+    """
+    Merge K listas ordenadas en una sola lista ordenada.
+    
+    Heap contiene tuplas: (valor, índice_lista, índice_elemento)
+    - valor: para comparar prioridad
+    - índice_lista: saber de qué lista viene
+    - índice_elemento: saber cuál es el siguiente
+    
+    Complejidad: O(N log K) donde N = total de elementos
+    Espacio: O(K) para el heap
+    """
     heap = []
+    
+    # Inicializar: meter el primer elemento de cada lista
     for i, lst in enumerate(lists):
-        if lst:
+        if lst:  # Ignorar listas vacías
             heapq.heappush(heap, (lst[0], i, 0))
     
     result = []
@@ -5418,42 +7782,257 @@ def merge_k_lists(lists):
         val, list_idx, elem_idx = heapq.heappop(heap)
         result.append(val)
         
-        if elem_idx + 1 < len(lists[list_idx]):
-            next_val = lists[list_idx][elem_idx + 1]
-            heapq.heappush(heap, (next_val, list_idx, elem_idx + 1))
+        # Si esa lista tiene más elementos, meter el siguiente
+        next_idx = elem_idx + 1
+        if next_idx < len(lists[list_idx]):
+            next_val = lists[list_idx][next_idx]
+            heapq.heappush(heap, (next_val, list_idx, next_idx))
     
     return result
 
+# Ejemplo
 lists = [[1,4,5], [1,3,4], [2,6]]
-print(merge_k_lists(lists))  # [1,1,2,3,4,4,5,6]'''
+print(merge_k_lists(lists))
+# Paso a paso:
+# Heap: [(1,0,0), (1,1,0), (2,2,0)] → pop (1,0,0) → push (4,0,1)
+# Heap: [(1,1,0), (2,2,0), (4,0,1)] → pop (1,1,0) → push (3,1,1)
+# ... → [1,1,2,3,4,4,5,6]'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="heap-app-q1",
+                    question="En Merge K Sorted Lists, ¿cuál es la complejidad temporal si hay N elementos totales y K listas?",
+                    options=[
+                        "O(N × K) porque revisamos K listas para cada elemento",
+                        "O(N log N) porque ordenamos todos los elementos",
+                        "O(N log K) porque cada operación de heap es O(log K)",
+                        "O(K log N) porque procesamos K listas"
+                    ],
+                    correct_index=2,
+                    explanation="Cada uno de los N elementos se inserta y se extrae del heap exactamente una vez. El heap tiene máximo K elementos, así que cada operación es O(log K). Total: N × O(log K) = O(N log K).",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Patrón 2: Running Median (Dos Heaps)
+
+**Problema**: Datos llegan uno a uno. Después de cada dato, calcula la mediana de todos los datos vistos.
+
+**Idea genial**: Usar **dos heaps** que dividen los datos a la mitad:
+- `max_heap` (mitad baja): guarda la mitad menor de los datos
+- `min_heap` (mitad alta): guarda la mitad mayor de los datos
+
+La mediana es el promedio de los tops de ambos heaps (o el top del mayor si hay cantidad impar).
+
+```
+Datos: [5, 2, 8, 1, 9]
+
+Después de 5:  max=[5]      min=[]        mediana=5
+Después de 2:  max=[2]      min=[5]       mediana=3.5
+Después de 8:  max=[5,2]    min=[8]       mediana=5
+Después de 1:  max=[2,1]    min=[5,8]     mediana=3.5
+Después de 9:  max=[5,2,1]  min=[8,9]     mediana=5
+```"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''import heapq
+
+class MedianFinder:
+    """
+    Calcula la mediana de un stream de datos en O(log n) por inserción.
+    
+    Dos heaps:
+    - small: max-heap (negativos) → mitad inferior
+    - large: min-heap → mitad superior
+    
+    Invariante: len(small) == len(large) o len(small) == len(large) + 1
+    La mediana está en el top de ambos (o solo small si impar)
+    """
+    def __init__(self):
+        self.small = []  # max-heap (almacena negativos)
+        self.large = []  # min-heap
+    
+    def addNum(self, num: int) -> None:
+        """Inserta un número manteniendo el balance. O(log n)"""
+        # Paso 1: Siempre insertar primero en small
+        heapq.heappush(self.small, -num)
+        
+        # Paso 2: Mover el mayor de small a large
+        # (garantiza que small solo tiene los menores)
+        heapq.heappush(self.large, -heapq.heappop(self.small))
+        
+        # Paso 3: Rebalancear si large tiene más elementos
+        if len(self.large) > len(self.small):
+            heapq.heappush(self.small, -heapq.heappop(self.large))
+    
+    def findMedian(self) -> float:
+        """Obtiene la mediana actual. O(1)"""
+        if len(self.small) > len(self.large):
+            return -self.small[0]  # Impar: el medio está en small
+        return (-self.small[0] + self.large[0]) / 2  # Par: promedio
+
+# Ejemplo de uso
+mf = MedianFinder()
+mf.addNum(1)  # [1]          → mediana = 1
+mf.addNum(2)  # [1, 2]       → mediana = 1.5
+mf.addNum(3)  # [1, 2, 3]    → mediana = 2
+print(mf.findMedian())  # 2.0'''
+            ),
+            ContentBlock(
+                type="info",
+                content="**¿Por qué 3 pasos?** El truco es brillante: 1) Insertamos en small, 2) Movemos el mayor de small a large (esto garantiza que el mayor de small ≤ menor de large), 3) Si large quedó más grande, devolvemos uno. Esto mantiene el invariante automáticamente."
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Patrón 3: Task Scheduler
+
+**Problema**: Tienes tareas con frecuencias y un cooldown entre tareas iguales. ¿Cuánto tiempo mínimo necesitas?
+
+**Idea**: Siempre procesa la tarea más frecuente primero (greedy). Usa un max-heap de frecuencias y una cola de enfriamiento."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''import heapq
+from collections import Counter, deque
+
+def least_interval(tasks: list[str], n: int) -> int:
+    """
+    Calcula el mínimo de intervalos para completar todas las tareas.
+    
+    Estrategia Greedy + Heap:
+    1. Siempre ejecutar la tarea más frecuente disponible
+    2. Cuando una tarea entra en cooldown, ponerla en espera
+    3. Si no hay tarea disponible, esperar (idle)
+    
+    Complejidad: O(T × log 26) ≈ O(T) donde T = total de tareas
+    """
+    count = Counter(tasks)
+    # Max-heap de frecuencias (negativas)
+    max_heap = [-cnt for cnt in count.values()]
+    heapq.heapify(max_heap)
+    
+    time = 0
+    cooldown = deque()  # (frecuencia_restante, tiempo_disponible)
+    
+    while max_heap or cooldown:
+        time += 1
+        
+        if max_heap:
+            # Ejecutar la tarea más frecuente
+            freq = heapq.heappop(max_heap) + 1  # +1 porque es negativo
+            if freq != 0:  # Aún tiene tareas pendientes
+                cooldown.append((freq, time + n))
+        
+        # ¿Alguna tarea sale del cooldown?
+        if cooldown and cooldown[0][1] == time:
+            freq, _ = cooldown.popleft()
+            heapq.heappush(max_heap, freq)
+    
+    return time
+
+# Ejemplo: tasks=["A","A","A","B","B","B"], n=2
+# A → B → idle → A → B → idle → A → B = 8
+print(least_interval(["A","A","A","B","B","B"], 2))  # 8'''
+            ),
+            ContentBlock(
+                type="warning",
+                content="**Trampa en entrevistas con heaps**: Cuando usas tuplas en el heap, Python compara elemento por elemento. Si el primer elemento es igual, compara el segundo. Si el segundo no es comparable (ej: un objeto), ¡crashea! Siempre agrega un desempate numérico como segundo elemento."
             )
         ],
         codeExamples=[
             CodeExample(
-                title="Find Median from Data Stream",
-                description="Calcular mediana en tiempo real",
-                code='''import heapq
+                title="Find Median from Data Stream (alternativa con sortedcontainers)",
+                description="Versión con SortedList para comparar approaches",
+                code='''# Si tienes acceso a sortedcontainers (no siempre en entrevistas)
+# from sortedcontainers import SortedList
+# Pero dominar la versión con dos heaps es esencial
 
-class MedianFinder:
+# Versión simple pero O(n) por inserción (para comparar):
+class MedianFinderSimple:
     def __init__(self):
-        self.small = []  # max-heap (negativos)
-        self.large = []  # min-heap
+        self.nums = []
     
     def addNum(self, num):
-        heapq.heappush(self.small, -num)
-        
-        # Balancear: mover de small a large
-        heapq.heappush(self.large, -heapq.heappop(self.small))
-        
-        # Mantener small >= large
-        if len(self.large) > len(self.small):
-            heapq.heappush(self.small, -heapq.heappop(self.large))
+        # Insertar manteniendo orden - O(n) con bisect
+        import bisect
+        bisect.insort(self.nums, num)
     
     def findMedian(self):
-        if len(self.small) > len(self.large):
-            return -self.small[0]
-        return (-self.small[0] + self.large[0]) / 2''',
+        n = len(self.nums)
+        if n % 2 == 1:
+            return self.nums[n // 2]
+        return (self.nums[n//2 - 1] + self.nums[n//2]) / 2
+
+# La versión con dos heaps es mejor:
+# addNum: O(log n) vs O(n)
+# findMedian: O(1) vs O(1)''',
                 language="python"
+            ),
+            CodeExample(
+                title="Reorganize String (heap greedy)",
+                description="Reorganizar un string para que no haya dos caracteres iguales adyacentes",
+                code='''import heapq
+from collections import Counter
+
+def reorganize_string(s: str) -> str:
+    """
+    Reorganiza s para que ningún caracter se repita adyacente.
+    Retorna "" si es imposible.
+    
+    Greedy: siempre colocar el caracter más frecuente que no
+    sea igual al último colocado.
+    """
+    count = Counter(s)
+    
+    # Verificar si es posible
+    max_freq = max(count.values())
+    if max_freq > (len(s) + 1) // 2:
+        return ""
+    
+    # Max-heap de (-frecuencia, caracter)
+    heap = [(-freq, char) for char, freq in count.items()]
+    heapq.heapify(heap)
+    
+    result = []
+    prev_freq, prev_char = 0, ''
+    
+    while heap:
+        freq, char = heapq.heappop(heap)
+        result.append(char)
+        
+        # Re-insertar el caracter anterior si aún tiene frecuencia
+        if prev_freq < 0:
+            heapq.heappush(heap, (prev_freq, prev_char))
+        
+        # Guardar actual como "anterior" para próxima iteración
+        prev_freq = freq + 1  # +1 porque usamos negativos
+        prev_char = char
+    
+    return ''.join(result)
+
+print(reorganize_string("aab"))    # "aba"
+print(reorganize_string("aaab"))   # "" (imposible)''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="heap-app-final-1",
+                question="En el patrón de Running Median con dos heaps, ¿qué invariante debemos mantener?",
+                options=[
+                    "Ambos heaps deben tener el mismo tamaño siempre",
+                    "El max-heap (small) debe tener igual o un elemento más que el min-heap (large), y max(small) ≤ min(large)",
+                    "El min-heap debe contener solo números positivos",
+                    "Los heaps deben rebalancearse solo cuando se pide la mediana"
+                ],
+                correct_index=1,
+                explanation="El invariante clave es: 1) len(small) == len(large) o len(small) == len(large)+1, y 2) todo elemento en small ≤ todo elemento en large. Esto nos permite encontrar la mediana en O(1): si impar, es el top de small; si par, es el promedio de ambos tops.",
+                difficulty="hard"
             )
         ],
         prerequisites=["heaps-intro"],
@@ -5470,6 +8049,56 @@ class MedianFinder:
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=55,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Piensa en un mapa de ciudades conectadas por carreteras. Cada ciudad es un 'nodo' y cada carretera es una 'arista'. Si quieres ir de tu ciudad a otra, necesitas encontrar un camino. BFS (búsqueda por anchura) es como una onda expansiva: primero exploras las ciudades vecinas, luego las vecinas de las vecinas, etc. Encuentra el camino más corto en número de pasos. DFS (búsqueda en profundidad) es como un explorador aventurero: sigue un camino hasta el final antes de retroceder y probar otro.""",
+        visual_diagram="""## Grafos: BFS vs DFS
+
+### Estructura del grafo
+
+```
+      [A] ─── [B]
+       |  \\    |
+       |   \\ [C]
+       |      |
+      [D] ─── [E]
+```
+
+---
+
+### BFS (Busqueda por anchura) - desde A
+
+| Paso | Cola | Visitando | Visitados |
+|------|------|-----------|-----------|
+| 1 | `[A]` | **A** | {A} |
+| 2 | `[B, D, C]` | **B** | {A, B} |
+| 3 | `[D, C]` | **D** | {A, B, D} |
+| 4 | `[C, E]` | **C** | {A, B, D, C} |
+| 5 | `[E]` | **E** | {A, B, D, C, E} |
+
+> BFS explora por **niveles** (onda expansiva). Encuentra el camino mas corto.
+
+---
+
+### DFS (Busqueda en profundidad) - desde A
+
+| Paso | Stack | Visitando | Visitados |
+|------|-------|-----------|-----------|
+| 1 | `[A]` | **A** | {A} |
+| 2 | `[B]` | **B** | {A, B} |
+| 3 | `[C]` | **C** | {A, B, C} |
+| 4 | `[E]` | **E** | {A, B, C, E} |
+| 5 | `[D]` | **D** | {A, B, C, E, D} |
+
+> DFS explora **en profundidad** (un camino hasta el final, luego retrocede).
+
+---
+
+| Caracteristica | BFS | DFS |
+|---------------|-----|-----|
+| Estructura | Cola (Queue) | Stack/Recursion |
+| Camino mas corto | Si (no ponderado) | No garantizado |
+| Espacio | O(ancho del grafo) | O(profundidad) |
+| Uso tipico | Shortest path, niveles | Ciclos, componentes, topological sort |
+""",
         content=[
             ContentBlock(
                 type="text",
@@ -5585,11 +8214,26 @@ print(dfs(graph, 'A'))  # ['A', 'B', 'D', 'E', 'F', 'C']'''
                 type="text",
                 content="""# Problemas Comunes de Grafos
 
-## Patrones
-1. **Matrix as Graph**: Celdas son nodos, adyacentes son vecinos
-2. **Topological Sort**: Ordenar dependencias
-3. **Union Find**: Componentes conectados
-4. **Shortest Path**: BFS para grafos no ponderados"""
+## Los 4 Patrones Principales
+
+### 1. Matrix as Graph (Islas)
+Las matrices 2D son grafos implícitos: cada celda es un nodo, y sus vecinos (arriba, abajo, izquierda, derecha) son las aristas.
+
+### 2. Topological Sort (Dependencias)
+¿En qué orden tomar cursos con prerequisitos? Topological sort ordena un DAG (grafo dirigido acíclico) respetando las dependencias.
+
+### 3. Cycle Detection (Ciclos)
+¿Hay un ciclo en el grafo? Usamos coloreo de nodos:
+- **Blanco (0)**: No visitado
+- **Gris (1)**: En proceso (en la pila de recursión)
+- **Negro (2)**: Completamente procesado
+Si llegamos a un nodo gris → ¡hay ciclo!
+
+### 4. Clone Graph (Copia profunda)
+Copiar un grafo nodo por nodo usando un hash map para evitar visitar el mismo nodo dos veces.
+
+## Tip para Entrevistas
+> Cuando veas una **matriz** con 0s y 1s, piensa: "¿Es un problema de grafos (islas, caminos, componentes conectados)?" Casi siempre lo es."""
             ),
             ContentBlock(
                 type="code",
@@ -5667,6 +8311,57 @@ print(can_finish(2, [[1,0],[0,1]]))  # False - ciclo'''
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=55,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""La recursión es como las muñecas rusas (matryoshkas): abres una y dentro hay otra más pequeña, y dentro otra, y otra... hasta llegar a la más pequeña que no se abre. Cada muñeca es una versión más simple del mismo problema. Backtracking agrega una idea: imagina un laberinto. Avanzas por un camino, y si llegas a un callejón sin salida, retrocedes al último cruce y pruebas otro camino. Exploras todas las posibilidades de forma ordenada, descartando las que no funcionan.""",
+        visual_diagram="""## Recursion y Backtracking
+
+### Recursion: arbol de llamadas de factorial(4)
+
+```
+  factorial(4)
+  └── 4 * factorial(3)
+       └── 3 * factorial(2)
+            └── 2 * factorial(1)
+                 └── return 1    ← caso base
+                return 2 * 1 = 2
+           return 3 * 2 = 6
+      return 4 * 6 = 24
+```
+
+---
+
+### Backtracking: generar subsets de [1, 2, 3]
+
+```
+                     []
+            /        |        \\
+         [1]        [2]       [3]
+        /   \\        |
+     [1,2] [1,3]   [2,3]
+       |
+    [1,2,3]
+```
+
+> En cada nodo decidimos: **incluir o no incluir** el siguiente elemento. Si una rama no lleva a solucion valida, **retrocedemos** (backtrack).
+
+---
+
+### Patron de Backtracking
+
+| Paso | Accion | Descripcion |
+|------|--------|-------------|
+| 1 | **Elegir** | Tomar una decision (agregar elemento) |
+| 2 | **Explorar** | Llamar recursivamente con la decision |
+| 3 | **Deshacer** | Quitar la decision (backtrack) |
+| 4 | **Repetir** | Probar la siguiente opcion |
+
+### Cuando usar cada uno
+
+| Patron | Senal | Ejemplo |
+|--------|-------|---------|
+| Recursion pura | Estructura se divide en subproblemas | Fibonacci, factorial |
+| Backtracking | "Genera todas las combinaciones/permutaciones" | Subsets, N-Queens |
+| Backtracking + poda | "Encuentra si existe una solucion valida" | Sudoku solver |
+""",
         content=[
             ContentBlock(
                 type="text",
@@ -5740,11 +8435,11 @@ print(permutations([1, 2, 3]))
             )
         ],
         prerequisites=[],
-        nextLessonId="backtracking-problemas"
+        nextLessonId="backtracking-intro"
     ),
     
     Lesson(
-        id="backtracking-problemas",
+        id="backtracking-intro",
         moduleId="recursion-backtracking",
         title="Problemas de Backtracking",
         description="N-Queens, Sudoku solver, subsets, combination sum.",
@@ -5876,7 +8571,25 @@ print(combination_sum([2,3,6,7], 7))
                 type="text",
                 content="""# Subsets y Combinations
 
-Patrones para generar todas las combinaciones posibles."""
+## El Patrón de Subsets
+
+Para cada elemento, tienes dos opciones: **incluirlo o no**. Esto crea un árbol binario de decisiones con 2^n hojas (subsets).
+
+## Subsets vs Combinations
+
+| Concepto | Definición | Ejemplo con [1,2,3] |
+|----------|-----------|---------------------|
+| **Subsets** | Todos los subconjuntos posibles | [], [1], [2], [3], [1,2], [1,3], [2,3], [1,2,3] |
+| **Combinations(k)** | Subconjuntos de tamaño k | C(3,2) = [1,2], [1,3], [2,3] |
+| **Combination Sum** | Subconjuntos que sumen target | target=4 → [1,3] si existe |
+
+## El Truco para Evitar Duplicados
+
+Si el array tiene duplicados como [1,2,2]:
+1. **Ordena** el array primero
+2. Si `nums[i] == nums[i-1]` y no usamos `nums[i-1]`, **salta** `nums[i]`
+
+Esto evita generar el mismo subset dos veces."""
             ),
             ContentBlock(
                 type="code",
@@ -5971,7 +8684,36 @@ def combine(n, k):
                 type="text",
                 content="""# Permutations
 
-Genera todas las ordenaciones posibles de elementos."""
+## Subsets vs Permutations
+
+- **Subsets**: {1,2} y {2,1} son el **mismo** subconjunto
+- **Permutations**: [1,2] y [2,1] son **diferentes** permutaciones
+
+En subsets elegimos "¿incluyo o no?". En permutations elegimos "¿qué pongo en esta posición?"
+
+## El Patrón
+
+```python
+def permute(nums):
+    result = []
+    def backtrack(current, remaining):
+        if not remaining:
+            result.append(current[:])
+            return
+        for i in range(len(remaining)):
+            current.append(remaining[i])
+            backtrack(current, remaining[:i] + remaining[i+1:])
+            current.pop()
+    backtrack([], nums)
+    return result
+```
+
+## Con Duplicados
+
+Para manejar duplicados en permutaciones:
+1. Ordena el array
+2. Usa un array `used[]` para rastrear qué elementos ya están en la permutación actual
+3. Salta `nums[i]` si `nums[i] == nums[i-1]` y `nums[i-1]` no fue usado"""
             ),
             ContentBlock(
                 type="code",
@@ -6056,7 +8798,7 @@ def permute_unique(nums):
         id="backtracking-string",
         moduleId="recursion-backtracking",
         title="Backtracking con Strings",
-        description="Problemas de backtracking que involucran strings.",
+        description="Letter Combinations, Palindrome Partitioning, Generate Parentheses y más.",
         order=5,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=50,
@@ -6066,7 +8808,36 @@ def permute_unique(nums):
                 type="text",
                 content="""# Backtracking con Strings
 
-Aplicaciones de backtracking en manipulación de strings."""
+## ¿Por qué strings + backtracking?
+
+Muchos problemas de strings requieren explorar TODAS las posibles combinaciones o particiones. Backtracking es perfecto porque:
+- Genera todas las posibilidades de forma sistemática
+- Puede podar (descartar) ramas inválidas temprano
+- El string se va construyendo carácter a carácter
+
+## Problemas Clásicos
+
+| Problema | Idea Clave |
+|----------|-----------|
+| Letter Combinations | Mapear dígitos → letras, explorar todas las combinaciones |
+| Palindrome Partitioning | Partir string en todas las formas posibles donde cada parte es palíndromo |
+| Generate Parentheses | Construir combinaciones válidas usando open/close counts |
+| Word Break II | Encontrar todas las formas de segmentar un string en palabras |
+
+## El Patrón para Strings
+
+```python
+def backtrack(index, current_string):
+    if index == len(s):  # Procesamos todo el string
+        result.append(current_string)
+        return
+    
+    for choice in get_choices(index):
+        if is_valid(choice):
+            backtrack(index + 1, current_string + choice)
+```
+
+**Tip**: Con strings, es común pasar `current + char` como nuevo string (en lugar de append/pop) porque los strings son inmutables en Python. Esto simplifica el backtrack pero usa más memoria."""
             ),
             ContentBlock(
                 type="code",
@@ -6157,7 +8928,42 @@ def partition(s):
                 type="text",
                 content="""# Backtracking en Matrices
 
-Exploración de matrices con backtracking."""
+## ¿Cuándo se usa?
+
+Cuando necesitas explorar caminos o buscar palabras en una cuadrícula 2D. Los problemas clásicos incluyen:
+- **Word Search**: ¿Existe una palabra en la cuadrícula?
+- **Sudoku Solver**: Rellenar un sudoku válido
+- **N-Queens**: Colocar N reinas sin conflictos
+
+## El Patrón para Matrices
+
+```python
+def backtrack(row, col, index):
+    # 1. Fuera de límites o celda ya visitada
+    if row < 0 or row >= m or col < 0 or col >= n:
+        return False
+    if grid[row][col] != target[index]:
+        return False
+    
+    # 2. Encontramos la solución
+    if index == len(target) - 1:
+        return True
+    
+    # 3. Marcar como visitado
+    temp = grid[row][col]
+    grid[row][col] = '#'
+    
+    # 4. Explorar 4 direcciones
+    for dr, dc in [(0,1),(0,-1),(1,0),(-1,0)]:
+        if backtrack(row+dr, col+dc, index+1):
+            return True
+    
+    # 5. Desmarcar (backtrack)
+    grid[row][col] = temp
+    return False
+```
+
+**Clave**: Marca la celda como visitada antes de explorar y desmárcala al volver (backtrack)."""
             ),
             ContentBlock(
                 type="code",
@@ -6245,9 +9051,40 @@ def exist(board, word):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Problemas de Caminos
+                content="""# Problemas de Caminos con Backtracking
 
-Encontrar todos los caminos posibles usando backtracking."""
+## ¿Cuándo usar Backtracking para Caminos?
+
+Cuando necesitas encontrar **TODOS** los caminos posibles (no solo el más corto). BFS/DFS normal encuentran UN camino, pero backtracking los explora todos.
+
+## Problemas Clásicos
+
+| Problema | Descripción |
+|----------|-------------|
+| All Paths From Source to Target | Todos los caminos de 0 a n-1 en DAG |
+| Path Sum II | Todos los caminos root→leaf con suma dada |
+| Unique Paths III | Caminos que visitan TODAS las celdas vacías |
+| Rat in a Maze | Todos los caminos de (0,0) a (n-1,n-1) |
+
+## El Patrón
+
+```python
+def find_all_paths(graph, start, end):
+    result = []
+    def backtrack(node, path):
+        if node == end:
+            result.append(path[:])
+            return
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                path.append(neighbor)
+                backtrack(neighbor, path)
+                path.pop()
+                visited.remove(neighbor)
+    backtrack(start, [start])
+    return result
+```"""
             ),
             ContentBlock(
                 type="code",
@@ -6358,7 +9195,44 @@ def unique_paths_iii(grid):
                 type="text",
                 content="""# Optimización de Backtracking
 
-Técnicas para hacer backtracking más eficiente."""
+## ¿Por qué optimizar?
+
+Backtracking puro puede ser extremadamente lento (exponencial). Las optimizaciones pueden reducir el tiempo dramáticamente.
+
+## Técnicas de Optimización
+
+### 1. Poda (Pruning)
+Descartar ramas que NO pueden llevar a una solución válida antes de explorarlas:
+```python
+if current_sum > target:  # Ya excedimos → no sigas
+    return
+```
+
+### 2. Ordenar el Input
+Ordenar permite detectar cuándo parar de explorar más temprano:
+```python
+candidates.sort()
+if candidates[i] > remaining:
+    break  # Los siguientes son aún mayores
+```
+
+### 3. Memoización
+Si el mismo subproblema se repite, guarda el resultado:
+```python
+@lru_cache(maxsize=None)
+def solve(state):
+    ...
+```
+
+### 4. Bit Manipulation
+Usar bits para rastrear el estado es más rápido que sets:
+```python
+# En lugar de: visited = set()
+# Usar: mask |= (1 << i)
+```
+
+### 5. Early Termination
+Si ya encontraste una solución y solo necesitas una, retorna inmediatamente."""
             ),
             ContentBlock(
                 type="code",
@@ -6467,6 +9341,53 @@ def can_partition_k_subsets(nums, k):
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=55,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""¿Cuántos caminos hay para subir 10 escalones si puedes dar pasos de 1 o 2? Podrías calcular TODOS los caminos posibles, pero eso explotar exponencialmente. El truco de DP: si ya calculaste cuántos caminos hay al escalón 8 y al escalón 9, llegar al 10 es simplemente sumarlos (vienes de 8+2 o de 9+1). DP es básicamente: 'si ya resolví subproblemas más pequeños, ¿puedo combinarlos para resolver el problema grande?' Guardas las respuestas anteriores para no recalcularlas. Es como tener una tabla de multiplicar en vez de multiplicar desde cero cada vez.""",
+        visual_diagram="""## Dynamic Programming
+
+### Problema: Climbing Stairs (pasos de 1 o 2)
+
+**Sin DP** - recalculas subproblemas (arbol exponencial):
+```
+                  f(5)
+               /       \\
+            f(4)       f(3)
+           /   \\      /   \\
+        f(3)  f(2)  f(2)  f(1)    ← f(3) y f(2) se repiten!
+        / \\
+     f(2) f(1)
+```
+
+**Con DP** - cada subproblema se calcula UNA vez:
+
+| Escalon | Formas de llegar | Calculo |
+|---------|-----------------|---------|
+| 0 | 1 | Base |
+| 1 | 1 | Base |
+| 2 | 2 | dp[0] + dp[1] = 1 + 1 |
+| 3 | 3 | dp[1] + dp[2] = 1 + 2 |
+| 4 | 5 | dp[2] + dp[3] = 2 + 3 |
+| 5 | **8** | dp[3] + dp[4] = 3 + 5 |
+
+---
+
+### Dos enfoques de DP
+
+| Enfoque | Direccion | Estructura | Ventaja |
+|---------|-----------|-----------|---------|
+| **Top-down** (Memoization) | Grande → pequeno | Recursion + cache | Mas intuitivo |
+| **Bottom-up** (Tabulation) | Pequeno → grande | Iteracion + tabla | Mas eficiente |
+
+---
+
+### Cuando usar DP
+
+| Senal en el problema | Ejemplo |
+|---------------------|---------|
+| "Cuantas formas hay de..." | Climbing stairs, coin change |
+| "Minimo/maximo costo para..." | Min path sum, edit distance |
+| "Es posible llegar a...?" | Word break, subset sum |
+| Subproblemas que se **repiten** | Fibonacci, knapsack |
+""",
         content=[
             ContentBlock(
                 type="text",
@@ -6553,7 +9474,7 @@ print(climb_stairs(5))  # 8''',
         id="dp-problemas",
         moduleId="dynamic-programming",
         title="Problemas Clásicos de DP",
-        description="Coin change, longest subsequences, knapsack y más.",
+        description="Coin change, longest subsequences, knapsack y más: los problemas que DEBES conocer.",
         order=2,
         difficulty=Difficulty.HARD,
         estimatedMinutes=65,
@@ -6563,11 +9484,25 @@ print(climb_stairs(5))  # 8''',
                 type="text",
                 content="""# Problemas Clásicos de DP
 
-## Patrones Comunes
-1. **1D DP**: Un array para estados (fibonacci, climbing stairs)
-2. **2D DP**: Matriz para dos variables (LCS, edit distance)
-3. **Knapsack**: Seleccionar items con restricción
-4. **Interval DP**: Subproblemas en rangos"""
+Estos son los problemas que aparecen una y otra vez en entrevistas. Domina estos y tendrás la base para resolver casi cualquier problema de DP.
+
+## Mapa de Patrones
+
+| Patrón | Problemas | Dificultad |
+|--------|-----------|-----------|
+| **1D DP** | Fibonacci, Climbing Stairs, House Robber | ⭐⭐ |
+| **2D DP** | LCS, Edit Distance, Unique Paths | ⭐⭐⭐ |
+| **Knapsack** | Partition Equal Subset, Target Sum | ⭐⭐⭐ |
+| **Subsequences** | LIS, LCS, Palindromic | ⭐⭐⭐⭐ |
+| **Interval** | Burst Balloons, Matrix Chain | ⭐⭐⭐⭐⭐ |
+
+## Cómo Abordar un Problema de DP
+
+1. **¿Es DP?** → ¿Tiene subproblemas superpuestos Y subestructura óptima?
+2. **Define el estado** → ¿Qué representa `dp[i]` o `dp[i][j]`?
+3. **Escribe la recurrencia** → ¿Cómo se relaciona con estados anteriores?
+4. **Define el caso base** → ¿Cuál es el valor cuando no hay nada que resolver?
+5. **¿Top-down o bottom-up?** → Memoización vs tabulación"""
             ),
             ContentBlock(
                 type="code",
@@ -6642,7 +9577,35 @@ print(longest_common_subsequence("abcde", "ace"))  # 3''',
                 type="text",
                 content="""# Patrones DP 1D
 
-Problemas donde el estado depende de posiciones anteriores en 1D."""
+## ¿Qué es DP 1D?
+
+Son problemas donde el estado se define con un solo índice: `dp[i]`. Cada posición depende de posiciones anteriores.
+
+## El Patrón House Robber
+
+Este es EL patrón 1D por excelencia:
+- Tienes opciones en cada posición (tomar o no tomar)
+- No puedes tomar dos adyacentes
+- `dp[i] = max(dp[i-1], dp[i-2] + nums[i])`
+
+Traducido: "el mejor resultado hasta i es el máximo entre NO robar esta casa (quedo con lo de antes) y SÍ robarla (lo de dos atrás + esta)".
+
+## Optimización de Espacio
+
+En DP 1D, si solo dependes de `dp[i-1]` y `dp[i-2]`, puedes usar solo **dos variables** en lugar de un array entero:
+```python
+prev2, prev1 = dp[i-2], dp[i-1]
+# En lugar de dp[len(nums)]
+```
+
+## Problemas Clásicos 1D
+
+| Problema | Estado dp[i] | Recurrencia |
+|----------|-------------|-------------|
+| Climbing Stairs | Formas de llegar a i | dp[i] = dp[i-1] + dp[i-2] |
+| House Robber | Max robo hasta i | dp[i] = max(dp[i-1], dp[i-2]+nums[i]) |
+| Maximum Subarray | Max subarray terminando en i | dp[i] = max(nums[i], dp[i-1]+nums[i]) |
+| Decode Ways | Formas de decodificar hasta i | dp[i] = dp[i-1] + dp[i-2] (si válidos) |"""
             ),
             ContentBlock(
                 type="code",
@@ -6722,7 +9685,36 @@ def max_subarray(nums):
                 type="text",
                 content="""# Patrones DP 2D
 
-Problemas donde el estado depende de dos dimensiones."""
+## ¿Cuándo es DP 2D?
+
+Usamos DP 2D cuando el estado necesita **dos variables**:
+- `dp[i][j]` = resultado para el subproblema definido por (i, j)
+
+## Tipos de DP 2D
+
+### 1. Grid/Matrix DP
+Moverse en una cuadrícula desde (0,0) hasta (m-1, n-1):
+- `dp[i][j]` = resultado óptimo para llegar a (i, j)
+- Transición: viene de arriba `dp[i-1][j]` o de la izquierda `dp[i][j-1]`
+
+### 2. Two-String DP
+Comparar dos strings (como LCS, Edit Distance):
+- `dp[i][j]` = resultado para s1[:i] y s2[:j]
+- Transición: depende de si s1[i-1] == s2[j-1]
+
+### 3. Interval DP
+Subproblemas definidos por rangos [i, j]:
+- `dp[i][j]` = resultado para el rango de i a j
+- Transición: probar todos los puntos de corte k entre i y j
+
+## Problemas Más Comunes
+
+| Problema | Estado | Tipo |
+|----------|--------|------|
+| Unique Paths | Caminos hasta (i,j) | Grid |
+| Min Path Sum | Costo mínimo hasta (i,j) | Grid |
+| LCS | Subsequencia común de s1[:i], s2[:j] | Two-String |
+| Edit Distance | Operaciones para s1[:i] → s2[:j] | Two-String |"""
             ),
             ContentBlock(
                 type="code",
@@ -6792,7 +9784,7 @@ def min_path_sum(grid):
         id="dp-knapsack",
         moduleId="dynamic-programming",
         title="Problemas Knapsack",
-        description="0/1 Knapsack, Unbounded Knapsack y variantes.",
+        description="0/1 Knapsack, Unbounded Knapsack y variantes como Partition Equal Subset Sum.",
         order=5,
         difficulty=Difficulty.HARD,
         estimatedMinutes=60,
@@ -6800,9 +9792,39 @@ def min_path_sum(grid):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Problemas Knapsack
+                content="""# Problemas Knapsack (Mochila)
 
-El knapsack es un patrón fundamental en DP."""
+## La Analogía
+
+Imagina que eres un ladrón con una mochila de capacidad limitada. Hay objetos con diferentes pesos y valores. ¿Cómo maximizas el valor total sin exceder la capacidad?
+
+## Dos Tipos de Knapsack
+
+### 1. 0/1 Knapsack (cada item se usa 0 o 1 vez)
+- "¿Tomo este item o no?"
+- Ejemplos: Partition Equal Subset Sum, Target Sum
+
+### 2. Unbounded Knapsack (items ilimitados)
+- "¿Cuántas veces uso este item?"
+- Ejemplos: Coin Change, Rod Cutting
+
+## El Patrón 0/1 Knapsack
+
+```
+Estado: dp[i][w] = máximo valor usando items 0..i-1 con capacidad w
+
+Transición:
+  Si NO tomo item i: dp[i][w] = dp[i-1][w]
+  Si SÍ tomo item i: dp[i][w] = dp[i-1][w - weight[i]] + value[i]
+  
+  dp[i][w] = max(no tomar, tomar si cabe)
+```
+
+## Optimización de Espacio
+
+En 0/1 Knapsack, solo necesitamos la fila anterior → podemos usar un array 1D recorriendo **de derecha a izquierda** (para no usar un item dos veces).
+
+En Unbounded Knapsack, recorremos **de izquierda a derecha** (porque SÍ podemos reusar items)."""
             ),
             ContentBlock(
                 type="code",
@@ -6863,7 +9885,7 @@ def unbounded_knapsack(weights, values, capacity):
         id="dp-coin-change",
         moduleId="dynamic-programming",
         title="Coin Change Patterns",
-        description="Problemas de cambio de monedas y variantes.",
+        description="Problemas de cambio de monedas: mínimas monedas, número de combinaciones y variantes.",
         order=6,
         difficulty=Difficulty.MEDIUM,
         estimatedMinutes=50,
@@ -6873,7 +9895,26 @@ def unbounded_knapsack(weights, values, capacity):
                 type="text",
                 content="""# Coin Change Patterns
 
-Problemas de combinaciones y permutaciones con monedas."""
+## ¿Por qué es tan importante?
+
+Los problemas de monedas son clásicos en entrevistas y encapsulan perfectamente los conceptos de DP. Hay dos variantes principales:
+
+1. **Coin Change I**: ¿Cuál es el **mínimo** número de monedas para llegar al amount? (Optimización)
+2. **Coin Change II**: ¿De **cuántas formas** puedo llegar al amount? (Conteo)
+
+## La Clave: Orden de los Loops
+
+```python
+# COMBINACIONES (el orden no importa: {1,2} = {2,1})
+for coin in coins:           # Moneda externa
+    for x in range(coin, amount+1):  # Amount interno
+
+# PERMUTACIONES (el orden importa: {1,2} ≠ {2,1})
+for x in range(1, amount+1):  # Amount externo
+    for coin in coins:          # Moneda interna
+```
+
+**¿Por qué?** Si la moneda es el loop externo, procesamos TODAS las combinaciones con moneda 1 antes de considerar moneda 2, evitando duplicados como {2,1} cuando ya contamos {1,2}."""
             ),
             ContentBlock(
                 type="code",
@@ -6939,9 +9980,23 @@ def change(amount, coins):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Problemas de Subsequences
+                content="""# Problemas de Subsequences con DP
 
-Patrones para encontrar subsecuencias óptimas."""
+## ¿Qué es una Subsequence?
+
+Una **subsecuencia** es un subconjunto de elementos que mantienen su orden relativo (pero no necesitan ser contiguos). Por ejemplo, de `[1,3,2,4]`, las subsecuencias incluyen `[1,2,4]`, `[3,4]`, etc.
+
+## Problemas Clave
+
+| Problema | Estado | Complejidad |
+|----------|--------|-------------|
+| **LIS** (Longest Increasing Subsequence) | dp[i] = LIS terminando en i | O(n²) o O(n log n) |
+| **LCS** (Longest Common Subsequence) | dp[i][j] = LCS de s1[:i] y s2[:j] | O(n·m) |
+| **Longest Palindromic Subsequence** | dp[i][j] = LPS en s[i:j+1] | O(n²) |
+
+## LIS con Binary Search: El Truco O(n log n)
+
+En lugar de comparar cada par de elementos (O(n²)), mantenemos un array `tails` donde `tails[i]` es el **menor** elemento final de todas las subsecuencias crecientes de longitud i+1. Usamos binary search para encontrar dónde insertar cada nuevo elemento."""
             ),
             ContentBlock(
                 type="code",
@@ -7022,9 +10077,28 @@ def find_number_of_lis(nums):
         content=[
             ContentBlock(
                 type="text",
-                content="""# String DP
+                content="""# String DP: Edit Distance y Más
 
-Problemas de DP que involucran manipulación de strings."""
+## ¿Cuándo es String DP?
+
+Cuando tienes uno o dos strings y necesitas encontrar transformaciones, coincidencias o comparaciones óptimas. Son siempre DP 2D donde `dp[i][j]` involucra prefijos de los strings.
+
+## Problemas Clave
+
+| Problema | dp[i][j] representa | Complejidad |
+|----------|---------------------|-------------|
+| Edit Distance | Min operaciones para s1[:i] → s2[:j] | O(n·m) |
+| Regex Matching | ¿s1[:i] matches con pattern[:j]? | O(n·m) |
+| Wildcard Matching | ¿s1[:i] matches con pattern[:j]? | O(n·m) |
+| Distinct Subsequences | Formas de formar s2[:j] desde s1[:i] | O(n·m) |
+
+## Edit Distance: La Recurrencia
+
+Si los caracteres coinciden: `dp[i][j] = dp[i-1][j-1]` (gratis)
+Si no coinciden, tomamos el mínimo de:
+- **Insertar**: `dp[i][j-1] + 1`
+- **Eliminar**: `dp[i-1][j] + 1`  
+- **Reemplazar**: `dp[i-1][j-1] + 1`"""
             ),
             ContentBlock(
                 type="code",
@@ -7110,9 +10184,27 @@ def num_distinct(s, t):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Matrix DP
+                content="""# Matrix DP: Problemas en Cuadrículas
 
-Problemas de DP que operan sobre matrices."""
+## ¿Cuándo usar Matrix DP?
+
+Cuando el problema involucra encontrar regiones, áreas o propiedades en una matriz 2D. A diferencia de Grid DP (moverse de A a B), aquí exploramos **propiedades de submatrices**.
+
+## Problemas Clave
+
+| Problema | dp[i][j] | Idea |
+|----------|----------|------|
+| Maximal Square | Lado del mayor cuadrado con esquina en (i,j) | min(arriba, izq, diagonal) + 1 |
+| Maximal Rectangle | Mayor rectángulo de 1s en la fila i | Histograma por fila |
+| Count Square Submatrices | Cuadrados con esquina inferior derecha en (i,j) | Similar a Maximal Square |
+
+## Maximal Square: La Intuición
+
+Para que `(i,j)` sea esquina de un cuadrado de lado `k`, necesitas que:
+- La celda de arriba `(i-1,j)` sea esquina de un cuadrado de al menos `k-1`
+- La celda a la izquierda `(i,j-1)` sea esquina de un cuadrado de al menos `k-1`
+- La diagonal `(i-1,j-1)` sea esquina de un cuadrado de al menos `k-1`
+- La celda actual `(i,j)` sea 1"""
             ),
             ContentBlock(
                 type="code",
@@ -7196,9 +10288,32 @@ def minimum_total(triangle):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Interval DP
+                content="""# Interval DP: Problemas de Rangos
 
-Problemas donde el estado representa un intervalo [i, j]."""
+## ¿Qué es Interval DP?
+
+El estado es un **rango [i, j]**. Probamos todos los puntos de corte `k` entre `i` y `j` para dividir el problema.
+
+```python
+for length in range(2, n+1):     # Longitud del intervalo
+    for i in range(n - length + 1):
+        j = i + length - 1
+        for k in range(i, j):    # Punto de corte
+            dp[i][j] = optimal(dp[i][k], dp[k+1][j])
+```
+
+## Problemas Clave
+
+| Problema | Descripción |
+|----------|-------------|
+| Burst Balloons | Explotar globos en el mejor orden para max coins |
+| Matrix Chain | Mejor orden para multiplicar matrices |
+| Palindrome Partitioning II | Mín cortes para dividir en palíndromos |
+| Stone Game | Estrategia óptima para juego de piedras |
+
+## La Clave: ¿Por qué probar todos los cortes?
+
+Porque no sabemos de antemano dónde es mejor dividir. En Burst Balloons, el último globo en explotar determina la respuesta óptima."""
             ),
             ContentBlock(
                 type="code",
@@ -7281,9 +10396,41 @@ def matrix_chain_order(dims):
         content=[
             ContentBlock(
                 type="text",
-                content="""# State Machine DP
+                content="""# State Machine DP: Transiciones de Estado
 
-Modela el problema como transiciones entre estados."""
+## ¿Cuándo usar State Machine DP?
+
+Cuando el problema tiene **múltiples estados** y las decisiones cambian de un estado a otro. El ejemplo clásico: **Best Time to Buy and Sell Stock**.
+
+## La Idea
+
+Define los posibles estados y las transiciones entre ellos:
+
+```
+     comprar         vender
+IDLE --------→ HOLD --------→ IDLE
+ ↑                               |
+ └───────────── cooldown ────────┘
+```
+
+Cada día, para cada estado, calcula el mejor profit posible.
+
+## Ejemplo: Stock con Cooldown
+
+| Estado | Significado | Transición |
+|--------|------------|------------|
+| `idle[i]` | No tengo acciones, puedo comprar | max(idle[i-1], cooldown[i-1]) |
+| `hold[i]` | Tengo acciones, puedo vender | max(hold[i-1], idle[i-1] - price[i]) |
+| `cooldown[i]` | Acabo de vender, no puedo hacer nada | hold[i-1] + price[i] |
+
+## Problemas de Stock (todos siguen este patrón)
+
+- Stock I: Una transacción
+- Stock II: Transacciones ilimitadas  
+- Stock III: Máximo 2 transacciones
+- Stock IV: Máximo k transacciones
+- Stock with Cooldown: Esperar 1 día después de vender
+- Stock with Fee: Comisión por transacción"""
             ),
             ContentBlock(
                 type="code",
@@ -7360,9 +10507,45 @@ def max_profit_fee(prices, fee):
         content=[
             ContentBlock(
                 type="text",
-                content="""# Bitmask DP
+                content="""# Bitmask DP: Representar Conjuntos con Bits
 
-Usa bits para representar subconjuntos de elementos visitados/usados."""
+## ¿Cuándo usar Bitmask DP?
+
+Cuando necesitas rastrear **qué elementos ya usaste** de un conjunto pequeño (n ≤ 20). Cada bit del entero representa si un elemento está incluido (1) o no (0).
+
+## La Representación
+
+```python
+# Con n=4 elementos: {A, B, C, D}
+# mask = 0b1010 = 10 → elementos B y D están incluidos
+# mask = 0b1111 = 15 → todos incluidos
+
+# Verificar si elemento i está incluido:
+if mask & (1 << i):  # True si bit i es 1
+
+# Añadir elemento i:
+new_mask = mask | (1 << i)
+
+# Quitar elemento i:
+new_mask = mask & ~(1 << i)
+
+# Total de subconjuntos posibles: 2^n
+```
+
+## Estado: `dp[mask]`
+
+`dp[mask]` = resultado óptimo habiendo visitado/usado los elementos indicados por `mask`.
+
+## Problemas Clásicos
+
+| Problema | n máximo | Idea |
+|----------|---------|------|
+| TSP (Travelling Salesman) | ~20 | dp[mask][last] = mín distancia visitando mask, terminando en last |
+| Partition to K Equal Sum Subsets | ~16 | dp[mask] = ¿puedo particionar los elementos en mask? |
+| Number of Ways to Wear Hats | ~40 hats, ~10 people | Bitmask sobre personas |
+
+## Complejidad: O(2^n · n)
+Hay 2^n posibles masks, y para cada uno iteramos sobre n elementos."""
             ),
             ContentBlock(
                 type="code",
@@ -7650,65 +10833,172 @@ def longest_univalue_path(root):
     Lesson(
         id="binary-search-intro",
         moduleId="binary-search",
-        title="Binary Search Fundamentals",
-        description="Búsqueda binaria clásica y variantes.",
+        title="Binary Search: De lo Básico a lo Avanzado",
+        description="Domina búsqueda binaria: template básico, variantes, arrays rotados y binary search on answer.",
         order=1,
         difficulty=Difficulty.EASY,
-        estimatedMinutes=45,
+        estimatedMinutes=65,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Piensa en el juego de "adivina el número del 1 al 100". Tu amigo piensa un número y tú preguntas. Si dices 50 y te dice "más alto", acabas de eliminar la MITAD de las opciones. Luego dices 75, "más bajo" — otra mitad eliminada. En máximo 7 intentos adivinas entre 100 números. Binary search funciona igual: en cada paso eliminas la mitad del espacio de búsqueda. Por eso es O(log n): con un millón de elementos, solo necesitas ~20 pasos.""",
+        visual_diagram="""## Binary Search Visual
+
+### Ejemplo 1: Buscar 7 en [1, 3, 5, 7, 9, 11, 13]
+
+| Paso | Rango | L | M | R | Comparacion | Resultado |
+|------|-------|---|---|---|-------------|-----------|
+| 1 | `[1, 3, 5, **7**, 9, 11, 13]` | 0 | 3 | 6 | mid=7 == 7 | **Encontrado!** |
+
+### Ejemplo 2: Buscar 3 en [1, 3, 5, 7, 9, 11, 13]
+
+| Paso | Rango | L | M | R | Comparacion | Resultado |
+|------|-------|---|---|---|-------------|-----------|
+| 1 | `[1, 3, 5, **7**, 9, 11, 13]` | 0 | 3 | 6 | mid=7 > 3 | Ir a la izquierda |
+| 2 | `[1, **3**, 5]` | 0 | 1 | 2 | mid=3 == 3 | **Encontrado!** |
+
+---
+
+### 3 Templates de Binary Search
+
+| Template | Condicion while | Uso |
+|----------|----------------|-----|
+| **Exacto** | `left <= right` | Buscar un valor especifico |
+| **Limite** | `left < right` | Buscar frontera/primer True |
+| **Answer** | `left < right` | Buscar en espacio de respuestas |
+
+---
+
+### Errores comunes
+
+| Error | Problema | Solucion |
+|-------|----------|----------|
+| `left + right` | Puede causar overflow | Usar `left + (right - left) // 2` |
+| `<=` vs `<` en while | Loop infinito o miss | Depende del template elegido |
+| `mid+1` vs `mid` | Off-by-one error | Analizar que mitad descartas |
+""",
+        core_code_snippet="""# TEMPLATE 1: Binary Search Exacto
+def binary_search(nums, target):
+    left, right = 0, len(nums) - 1
+    while left <= right:
+        mid = left + (right - left) // 2
+        if nums[mid] == target: return mid
+        elif nums[mid] < target: left = mid + 1
+        else: right = mid - 1
+    return -1  # left = punto de inserción
+
+# TEMPLATE 2: Buscar Frontera (primer True)
+def first_true(lo, hi, condition):
+    while lo < hi:
+        mid = lo + (hi - lo) // 2
+        if condition(mid): hi = mid
+        else: lo = mid + 1
+    return lo  # primer índice donde condition es True
+
+# TEMPLATE 3: Binary Search on Answer
+def min_answer(lo, hi, is_feasible):
+    while lo < hi:
+        mid = lo + (hi - lo) // 2
+        if is_feasible(mid): hi = mid
+        else: lo = mid + 1
+    return lo""",
         content=[
             ContentBlock(
                 type="text",
-                content="""# Binary Search
+                content="""# Binary Search: De lo Básico a lo Avanzado
 
-Búsqueda binaria reduce el espacio de búsqueda a la mitad en cada paso: O(log n).
+Binary Search es probablemente el algoritmo **más importante** en computer science. Reduce cualquier búsqueda de O(n) a O(log n) — eso es pasar de revisar 1 millón de elementos a solo 20 comparaciones.
 
-## Requisito
-El array debe estar **ordenado**.
+## ¿Cuándo usar Binary Search?
 
-## Template Básico
-```python
-left, right = 0, len(arr) - 1
-while left <= right:
-    mid = (left + right) // 2
-    if arr[mid] == target:
-        return mid
-    elif arr[mid] < target:
-        left = mid + 1
-    else:
-        right = mid - 1
-return -1
-```"""
+| Señal | Ejemplo |
+|-------|---------|
+| Array **ordenado** + buscar valor | Búsqueda clásica |
+| Encontrar **primera/última** ocurrencia | Lower/Upper bound |
+| Array **rotado** ordenado | Buscar el punto de rotación |
+| "Minimizar el máximo" / "Maximizar el mínimo" | Binary Search on Answer |
+| Respuesta **monótona** (si X funciona, X+1 también) | Binary Search on Answer |
+
+### El error #1 de principiantes
+Binary search NO es solo para arrays. Se puede usar siempre que puedas **dividir el espacio de búsqueda a la mitad** con una condición."""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Binary Search básico
-def binary_search(nums, target):
+                content='''# Template 1: Binary Search EXACTO
+def binary_search(nums: list[int], target: int) -> int:
+    """
+    Busca target en un array ordenado.
+    Retorna el índice o -1 si no existe.
+    
+    CLAVE: while left <= right (incluye igualdad)
+    Complejidad: O(log n) tiempo, O(1) espacio
+    """
     left, right = 0, len(nums) - 1
     
-    while left <= right:
+    while left <= right:  # <= porque left==right es un rango válido
         mid = left + (right - left) // 2  # Evita overflow
         
         if nums[mid] == target:
-            return mid
+            return mid              # ¡Encontrado!
         elif nums[mid] < target:
-            left = mid + 1
+            left = mid + 1          # Descartar mitad izquierda
         else:
-            right = mid - 1
+            right = mid - 1         # Descartar mitad derecha
     
-    return -1
+    return -1  # No encontrado
+    # BONUS: 'left' = punto donde se insertaría target
 
-# Encontrar primera ocurrencia
-def first_occurrence(nums, target):
+# Ejemplo paso a paso: buscar 7 en [1,3,5,7,9,11]
+# left=0, right=5 → mid=2, arr[2]=5 < 7 → left=3
+# left=3, right=5 → mid=4, arr[4]=9 > 7 → right=3
+# left=3, right=3 → mid=3, arr[3]=7 == 7 → ¡return 3!'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="bs-q1",
+                    question="¿Por qué usamos `mid = left + (right - left) // 2` en vez de `mid = (left + right) // 2`?",
+                    options=[
+                        "Es más rápido computacionalmente",
+                        "Evita overflow cuando left + right excede el valor máximo de un entero",
+                        "Produce un mid más preciso",
+                        "No hay diferencia, es solo estilo"
+                    ],
+                    correct_index=1,
+                    explanation="En lenguajes como Java o C++, left + right puede causar integer overflow si ambos son muy grandes. left + (right - left) // 2 es matemáticamente equivalente pero seguro. En Python no hay overflow de enteros, pero es buena práctica mencionarlo en entrevistas.",
+                    difficulty="easy"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Template 2: Buscar Primera/Última Ocurrencia
+
+A veces no buscas un valor exacto, sino la **frontera**: ¿dónde empieza o termina algo?
+
+```
+Array: [1, 2, 2, 2, 2, 3, 4]
+Primera ocurrencia de 2 → índice 1
+Última ocurrencia de 2 → índice 4
+```
+
+El truco: cuando encuentras target, **no paras**, sigues buscando hacia un lado."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Encontrar PRIMERA ocurrencia (lower bound)
+def first_occurrence(nums: list[int], target: int) -> int:
+    """
+    Cuando encontramos target, NO retornamos.
+    Seguimos buscando a la IZQUIERDA por si hay otra.
+    """
     left, right = 0, len(nums) - 1
     result = -1
     
     while left <= right:
         mid = (left + right) // 2
         if nums[mid] == target:
-            result = mid
-            right = mid - 1  # Seguir buscando a la izquierda
+            result = mid         # Guardar candidato
+            right = mid - 1      # Seguir buscando a la izquierda
         elif nums[mid] < target:
             left = mid + 1
         else:
@@ -7716,14 +11006,65 @@ def first_occurrence(nums, target):
     
     return result
 
-print(first_occurrence([1, 2, 2, 2, 3], 2))  # 1'''
-            )
-        ],
-        codeExamples=[
-            CodeExample(
-                title="Search in Rotated Sorted Array",
-                description="Buscar en array ordenado rotado",
-                code='''def search_rotated(nums, target):
+# Encontrar ÚLTIMA ocurrencia (upper bound)
+def last_occurrence(nums: list[int], target: int) -> int:
+    """
+    Igual pero buscamos a la DERECHA cuando encontramos.
+    """
+    left, right = 0, len(nums) - 1
+    result = -1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            result = mid         # Guardar candidato
+            left = mid + 1       # Seguir buscando a la derecha
+        elif nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return result
+
+# Ejemplo
+arr = [1, 2, 2, 2, 2, 3, 4]
+print(first_occurrence(arr, 2))  # 1
+print(last_occurrence(arr, 2))   # 4
+
+# BONUS: Módulo bisect de Python hace esto
+import bisect
+print(bisect.bisect_left(arr, 2))   # 1 (primera posición de 2)
+print(bisect.bisect_right(arr, 2))  # 5 (primera posición después de 2)'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Search in Rotated Sorted Array
+
+Un clásico de entrevistas FAANG. El array estaba ordenado pero se "rotó":
+
+```
+Original: [0, 1, 2, 3, 4, 5, 6, 7]
+Rotado:   [4, 5, 6, 7, 0, 1, 2, 3]
+```
+
+**Idea clave**: Al menos UNA mitad siempre está ordenada. Determina cuál y verifica si target está en ella."""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''def search_rotated(nums: list[int], target: int) -> int:
+    """
+    Binary search en array rotado.
+    
+    En cada paso, una mitad está ordenada:
+    - Si nums[left] <= nums[mid]: izquierda ordenada
+    - Si no: derecha ordenada
+    
+    Verificamos si target está en la mitad ordenada.
+    Si sí, buscamos ahí. Si no, buscamos en la otra.
+    
+    Complejidad: O(log n) tiempo, O(1) espacio
+    """
     left, right = 0, len(nums) - 1
     
     while left <= right:
@@ -7732,23 +11073,171 @@ print(first_occurrence([1, 2, 2, 2, 3], 2))  # 1'''
         if nums[mid] == target:
             return mid
         
-        # Mitad izquierda ordenada
+        # ¿La mitad IZQUIERDA está ordenada?
+        if nums[left] <= nums[mid]:
+            # ¿Target está en la mitad izquierda (ordenada)?
+            if nums[left] <= target < nums[mid]:
+                right = mid - 1     # Sí, buscar ahí
+            else:
+                left = mid + 1      # No, buscar en la otra
+        # La mitad DERECHA está ordenada
+        else:
+            # ¿Target está en la mitad derecha (ordenada)?
+            if nums[mid] < target <= nums[right]:
+                left = mid + 1      # Sí, buscar ahí
+            else:
+                right = mid - 1     # No, buscar en la otra
+    
+    return -1
+
+# [4, 5, 6, 7, 0, 1, 2], target=0
+# mid=7, left=4 <= 7 → izq ordenada, 0 no está en [4,7) → right half
+# mid=1, left=0 <= 1 → izq ordenada, 0 está en [0,1) → left half  
+# mid=0 == target → ¡Encontrado!
+print(search_rotated([4,5,6,7,0,1,2], 0))  # 4'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Binary Search on Answer (Avanzado)
+
+Esta es la aplicación más poderosa y la que separa a los candidatos buenos de los excelentes. En vez de buscar un valor en un array, **buscas la respuesta óptima**.
+
+**Patrón**: "¿Cuál es el mínimo/máximo X tal que se cumple una condición?"
+
+Si la condición es **monótona** (si funciona para X, también funciona para X+1), puedes usar binary search.
+
+Ejemplos:
+- Koko comiendo bananas: mínima velocidad para terminar en H horas
+- Dividir array en subarrays: minimizar la suma máxima
+- Capacidad de barco: mínima capacidad para enviar todo en D días"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''import math
+
+def min_eating_speed(piles: list[int], h: int) -> int:
+    """
+    Koko come bananas: encuentra la velocidad MÍNIMA
+    para comer todas las pilas en h horas.
+    
+    Binary Search on Answer:
+    - Rango de respuesta: [1, max(piles)]
+    - Condición: ¿puede terminar con velocidad mid?
+    - Si sí → intentar más lento (right = mid)
+    - Si no → necesita más rápido (left = mid + 1)
+    
+    Complejidad: O(n × log(max_pile)) tiempo
+    """
+    def can_finish(speed):
+        """¿Puede comer todo en h horas con esta velocidad?"""
+        hours = sum(math.ceil(pile / speed) for pile in piles)
+        return hours <= h
+    
+    left, right = 1, max(piles)
+    
+    while left < right:  # Nota: < no <=
+        mid = (left + right) // 2
+        if can_finish(mid):
+            right = mid       # Puede, intentar más lento
+        else:
+            left = mid + 1    # No puede, necesita más rápido
+    
+    return left
+
+# piles=[3,6,7,11], h=8
+# Rango: [1, 11]
+# speed=6 → horas=1+1+2+2=6 ≤ 8 ✓ → intentar menos
+# speed=3 → horas=1+2+3+4=10 > 8 ✗ → necesita más
+# speed=4 → horas=1+2+2+3=8 ≤ 8 ✓ → respuesta: 4
+print(min_eating_speed([3,6,7,11], 8))  # 4'''
+            ),
+            ContentBlock(
+                type="warning",
+                content="**El error más común**: confundir `<` con `<=` y `mid` con `mid+1`. En Binary Search on Answer, usa `while left < right` (sin =) y `right = mid` (sin -1). Esto busca la frontera donde la condición cambia de False a True."
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="bs-q2",
+                    question="En Binary Search on Answer, ¿por qué usamos 'while left < right' en vez de 'while left <= right'?",
+                    options=[
+                        "Es más rápido",
+                        "Porque buscamos una frontera (no un valor exacto), y cuando left == right, hemos convergido a la respuesta",
+                        "Para evitar loops infinitos",
+                        "No hay diferencia real"
+                    ],
+                    correct_index=1,
+                    explanation="Correcto. En binary search on answer buscamos el PRIMER valor donde la condición es True (la frontera). Cuando left == right, hemos convergido: ese es el valor mínimo que cumple la condición. Si usáramos <=, necesitaríamos lógica adicional para detectar cuándo parar.",
+                    difficulty="hard"
+                )
+            )
+        ],
+        codeExamples=[
+            CodeExample(
+                title="Search in Rotated Sorted Array",
+                description="El clásico de entrevistas: binary search en array rotado",
+                code='''def search_rotated(nums, target):
+    left, right = 0, len(nums) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
         if nums[left] <= nums[mid]:
             if nums[left] <= target < nums[mid]:
                 right = mid - 1
             else:
                 left = mid + 1
-        # Mitad derecha ordenada
         else:
             if nums[mid] < target <= nums[right]:
                 left = mid + 1
             else:
                 right = mid - 1
-    
     return -1
 
 print(search_rotated([4,5,6,7,0,1,2], 0))  # 4''',
                 language="python"
+            ),
+            CodeExample(
+                title="Find Peak Element",
+                description="Encontrar un pico local usando binary search",
+                code='''def find_peak_element(nums: list[int]) -> int:
+    """
+    Un pico es mayor que sus vecinos.
+    Si nums[mid] < nums[mid+1], hay un pico a la derecha.
+    Si nums[mid] > nums[mid+1], hay un pico a la izquierda (o es mid).
+    
+    Complejidad: O(log n)
+    """
+    left, right = 0, len(nums) - 1
+    
+    while left < right:
+        mid = (left + right) // 2
+        if nums[mid] < nums[mid + 1]:
+            left = mid + 1   # Pico a la derecha
+        else:
+            right = mid       # Pico a la izquierda o en mid
+    
+    return left
+
+print(find_peak_element([1,2,3,1]))  # 2 (valor 3)
+print(find_peak_element([1,2,1,3,5,6,4]))  # 5 (valor 6)''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="bs-final-1",
+                question="¿Cuántas comparaciones necesita binary search para buscar en un array de 1,000,000 elementos?",
+                options=[
+                    "1,000,000 en el peor caso",
+                    "Alrededor de 20 (log2 de 1,000,000)",
+                    "500,000 (la mitad)",
+                    "100 (raíz cuadrada)"
+                ],
+                correct_index=1,
+                explanation="log₂(1,000,000) ≈ 20. Binary search reduce el espacio a la mitad en cada paso: 1M → 500K → 250K → ... → 1. Necesita ⌈log₂(n)⌉ pasos. Esto es lo que hace a binary search tan poderoso comparado con búsqueda lineal O(n).",
+                difficulty="easy"
             )
         ],
         prerequisites=[],
@@ -7759,45 +11248,193 @@ print(search_rotated([4,5,6,7,0,1,2], 0))  # 4''',
     Lesson(
         id="sorting-intro",
         moduleId="sorting-algorithms",
-        title="Algoritmos de Ordenamiento",
-        description="Quick sort, merge sort, y cuándo usar cada uno.",
+        title="Algoritmos de Ordenamiento: Guía Completa",
+        description="Quick sort, merge sort, counting sort y cuándo usar cada uno. Con análisis de trade-offs.",
         order=1,
         difficulty=Difficulty.MEDIUM,
-        estimatedMinutes=55,
+        estimatedMinutes=65,
         status=LessonStatus.AVAILABLE,
+        feynman_explanation="""Imagina que tienes 100 cartas desordenadas y necesitas ordenarlas. Quick Sort: eliges una carta al azar (pivote), pones las menores a la izquierda y las mayores a la derecha, y repites con cada mitad. Merge Sort: divides el mazo en dos, ordenas cada mitad por separado, y luego las combinas como un zipper. Quick Sort es más rápido en la práctica (menos movimientos), pero Merge Sort es más predecible (siempre O(n log n)). Python usa Tim Sort, una mezcla inteligente de ambos.""",
+        visual_diagram="""## Comparacion de Algoritmos de Sorting
+
+### Tabla de referencia
+
+| Algoritmo | Mejor | Promedio | Peor | Espacio | Estable |
+|-----------|-------|----------|------|---------|---------|
+| **Quick Sort** | O(n log n) | O(n log n) | O(n^2) | O(log n) | No |
+| **Merge Sort** | O(n log n) | O(n log n) | O(n log n) | O(n) | Si |
+| **Heap Sort** | O(n log n) | O(n log n) | O(n log n) | O(1) | No |
+| **Tim Sort** | O(n) | O(n log n) | O(n log n) | O(n) | Si |
+| **Counting** | O(n+k) | O(n+k) | O(n+k) | O(k) | Si |
+
+---
+
+### Quick Sort (divide and conquer)
+
+```
+  [3, 6, 8, 10, 1, 2, 1]     pivot = 6
+  [3, 1, 2, 1]  [6]  [8, 10]   ← particionar
+  [1, 1, 2, 3]  [6]  [8, 10]   ← ordenar recursivamente
+```
+
+### Merge Sort (divide and conquer)
+
+```
+  [38, 27, 43, 3, 9, 82, 10]           ← original
+  [38, 27, 43, 3]    [9, 82, 10]       ← dividir
+  [27, 38]  [3, 43]   [9, 82]  [10]    ← dividir mas
+  [3, 27, 38, 43]    [9, 10, 82]       ← merge
+  [3, 9, 10, 27, 38, 43, 82]           ← merge final
+```
+
+---
+
+### Estabilidad (mantiene orden relativo de iguales)
+
+| Estables | No estables |
+|----------|-------------|
+| Merge Sort, Tim Sort, Counting Sort | Quick Sort, Heap Sort |
+""",
+        core_code_snippet="""# Quick Sort - El más usado en la práctica
+def quick_sort(arr):
+    if len(arr) <= 1: return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    mid = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quick_sort(left) + mid + quick_sort(right)
+
+# Merge Sort - Garantizado O(n log n)
+def merge_sort(arr):
+    if len(arr) <= 1: return arr
+    m = len(arr) // 2
+    L, R = merge_sort(arr[:m]), merge_sort(arr[m:])
+    return merge(L, R)
+
+def merge(L, R):
+    result, i, j = [], 0, 0
+    while i < len(L) and j < len(R):
+        if L[i] <= R[j]: result.append(L[i]); i += 1
+        else: result.append(R[j]); j += 1
+    return result + L[i:] + R[j:]""",
         content=[
             ContentBlock(
                 type="text",
                 content="""# Algoritmos de Ordenamiento
 
-## Comparación
+Ordenar es una de las operaciones más fundamentales en ciencias de la computación. En entrevistas, necesitas saber:
 
-| Algoritmo | Tiempo Promedio | Espacio | Estable |
-|-----------|----------------|---------|---------|
-| Quick Sort | O(n log n) | O(log n) | No |
-| Merge Sort | O(n log n) | O(n) | Sí |
-| Heap Sort | O(n log n) | O(1) | No |
-| Tim Sort | O(n log n) | O(n) | Sí |
+1. **Implementar** Quick Sort y Merge Sort desde cero
+2. **Elegir** el algoritmo correcto para cada situación
+3. **Usar** `sorted()` y `sort()` de Python con `key` personalizado
+4. Entender **estabilidad** y cuándo importa
 
-Tim Sort es el que usa Python por defecto."""
+## Tabla de Referencia Rápida
+
+| Algoritmo | Tiempo Promedio | Peor Caso | Espacio | Estable | Cuándo usar |
+|-----------|----------------|-----------|---------|---------|-------------|
+| Quick Sort | O(n log n) | O(n²) | O(log n) | No | Uso general, rápido en práctica |
+| Merge Sort | O(n log n) | O(n log n) | O(n) | Sí | Necesitas estabilidad o worst-case |
+| Heap Sort | O(n log n) | O(n log n) | O(1) | No | Memoria limitada |
+| Tim Sort | O(n log n) | O(n log n) | O(n) | Sí | ¡Python lo usa! Datos semi-ordenados |
+| Counting Sort | O(n + k) | O(n + k) | O(k) | Sí | Rango pequeño de valores |"""
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Quick Sort — El más rápido en la práctica
+
+**Idea**: Elige un **pivote**, pon los menores a la izquierda y los mayores a la derecha, y repite recursivamente.
+
+### ¿Por qué es "quick"?
+- Excelente cache performance (acceso secuencial a memoria)
+- Constantes pequeñas comparado con merge sort
+- In-place en la versión con partición
+
+### ¿Cuándo NO usar Quick Sort?
+- Cuando necesitas **garantía O(n log n)** (peor caso es O(n²))
+- Cuando necesitas **estabilidad** (mantener orden de iguales)"""
             ),
             ContentBlock(
                 type="code",
                 language="python",
-                content='''# Quick Sort
-def quick_sort(arr):
+                content='''# Quick Sort - Versión Simple (usa espacio extra)
+def quick_sort(arr: list) -> list:
+    """
+    Divide: elige pivote, separa menores y mayores.
+    Conquista: ordena recursivamente cada parte.
+    
+    Esta versión es fácil de entender pero usa O(n) espacio.
+    """
     if len(arr) <= 1:
         return arr
     
-    pivot = arr[len(arr) // 2]
+    pivot = arr[len(arr) // 2]  # Pivote: elemento del medio
     left = [x for x in arr if x < pivot]
     middle = [x for x in arr if x == pivot]
     right = [x for x in arr if x > pivot]
     
     return quick_sort(left) + middle + quick_sort(right)
 
-# Merge Sort
-def merge_sort(arr):
+# Versión IN-PLACE con Lomuto Partition (más cercana a la real)
+def quick_sort_inplace(arr: list, lo: int = 0, hi: int = None) -> None:
+    """Quick Sort in-place usando partición Lomuto."""
+    if hi is None:
+        hi = len(arr) - 1
+    
+    if lo < hi:
+        pivot_idx = partition(arr, lo, hi)
+        quick_sort_inplace(arr, lo, pivot_idx - 1)
+        quick_sort_inplace(arr, pivot_idx + 1, hi)
+
+def partition(arr, lo, hi):
+    """
+    Partición Lomuto: pivote = último elemento.
+    Reorganiza para que menores estén a la izquierda.
+    Retorna la posición final del pivote.
+    """
+    pivot = arr[hi]
+    i = lo  # Frontera de los "menores que pivote"
+    
+    for j in range(lo, hi):
+        if arr[j] < pivot:
+            arr[i], arr[j] = arr[j], arr[i]
+            i += 1
+    
+    arr[i], arr[hi] = arr[hi], arr[i]  # Colocar pivote
+    return i
+
+arr = [3, 6, 8, 10, 1, 2, 1]
+quick_sort_inplace(arr)
+print(arr)  # [1, 1, 2, 3, 6, 8, 10]'''
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Merge Sort — Garantizado y Estable
+
+**Idea**: Divide el array a la mitad, ordena cada mitad recursivamente, y luego **merge** (combina) ambas mitades ordenadas.
+
+### Ventajas sobre Quick Sort
+- **Siempre O(n log n)** — sin peor caso cuadrático
+- **Estable** — mantiene el orden relativo de elementos iguales
+- Base de muchos algoritmos (merge k lists, external sort, count inversions)
+
+### Desventaja
+- Usa **O(n) espacio extra** para el merge"""
+            ),
+            ContentBlock(
+                type="code",
+                language="python",
+                content='''# Merge Sort - Completo con explicación
+def merge_sort(arr: list) -> list:
+    """
+    Divide y Conquista:
+    1. Si el array tiene 0-1 elementos, ya está ordenado
+    2. Divide por la mitad
+    3. Ordena cada mitad recursivamente
+    4. Merge las dos mitades ordenadas
+    
+    Complejidad: O(n log n) siempre, O(n) espacio
+    """
     if len(arr) <= 1:
         return arr
     
@@ -7807,29 +11444,102 @@ def merge_sort(arr):
     
     return merge(left, right)
 
-def merge(left, right):
+def merge(left: list, right: list) -> list:
+    """
+    Combina dos listas ORDENADAS en una sola ordenada.
+    Usa dos punteros (¡Two Pointers otra vez!).
+    
+    Complejidad: O(n + m) donde n, m son los tamaños
+    """
     result = []
     i = j = 0
     
     while i < len(left) and j < len(right):
-        if left[i] <= right[j]:
+        if left[i] <= right[j]:  # <= para estabilidad
             result.append(left[i])
             i += 1
         else:
             result.append(right[j])
             j += 1
     
+    # Agregar los restantes
     result.extend(left[i:])
     result.extend(right[j:])
-    return result'''
+    return result
+
+print(merge_sort([38, 27, 43, 3, 9, 82, 10]))
+# [3, 9, 10, 27, 38, 43, 82]'''
+            ),
+            ContentBlock(
+                type="quiz",
+                quiz=QuizQuestion(
+                    id="sort-q1",
+                    question="¿Cuándo es merge sort MEJOR que quick sort?",
+                    options=[
+                        "Siempre, porque tiene mejor complejidad promedio",
+                        "Cuando el array es pequeño (< 10 elementos)",
+                        "Cuando necesitas estabilidad o peor caso garantizado O(n log n)",
+                        "Cuando el array ya está casi ordenado"
+                    ],
+                    correct_index=2,
+                    explanation="Merge sort es mejor cuando necesitas: 1) Estabilidad (mantener orden relativo de iguales), o 2) Garantía de O(n log n) en el peor caso. Quick sort tiene peor caso O(n²) aunque es más rápido en la práctica por constantes menores y mejor uso de caché.",
+                    difficulty="medium"
+                )
+            ),
+            ContentBlock(
+                type="text",
+                content="""## Sorting en Python: `sorted()` y `.sort()`
+
+En entrevistas, generalmente NO necesitas implementar sorting desde cero. Python usa **Tim Sort** que es O(n log n) y estable.
+
+Lo que sí necesitas dominar es el parámetro `key`:
+
+```python
+# Ordenar por longitud
+words = ["banana", "pie", "Washington", "book"]
+sorted(words, key=len)  # ['pie', 'book', 'banana', 'Washington']
+
+# Ordenar por segundo elemento
+pairs = [(1, 'b'), (2, 'a'), (1, 'a')]
+sorted(pairs, key=lambda x: x[1])  # [(2, 'a'), (1, 'a'), (1, 'b')]
+
+# Ordenar por múltiples criterios
+# Primero por edad, luego por nombre
+people = [("Bob", 25), ("Alice", 25), ("Charlie", 20)]
+sorted(people, key=lambda x: (x[1], x[0]))
+# [('Charlie', 20), ('Alice', 25), ('Bob', 25)]
+
+# Ordenar descendente
+sorted(nums, reverse=True)
+sorted(nums, key=lambda x: -x)  # Alternativa
+```"""
+            ),
+            ContentBlock(
+                type="info",
+                content="**Para entrevistas**: Si el problema no pide implementar el sorting, usa `sorted()`. Si pide específicamente implementar uno, Quick Sort es lo más impresionante por ser in-place, pero Merge Sort es más fácil de implementar correctamente."
+            ),
+            ContentBlock(
+                type="warning",
+                content="**¿Estabilidad importa?** Sí cuando ordenas por múltiples criterios. Si ordenas primero por nombre y luego por edad, un sort estable mantiene el orden por nombre para personas de la misma edad. Python `sorted()` ES estable — aprovéchalo."
             )
         ],
         codeExamples=[
             CodeExample(
-                title="Sort Colors (Dutch Flag)",
-                description="Ordenar array con solo 3 valores distintos",
-                code='''def sort_colors(nums):
-    low, mid, high = 0, 0, len(nums) - 1
+                title="Sort Colors (Dutch National Flag)",
+                description="Ordenar array con solo 3 valores distintos en UNA pasada O(n)",
+                code='''def sort_colors(nums: list[int]) -> None:
+    """
+    Solo tiene 0s, 1s, 2s. Ordenar in-place.
+    
+    3 punteros:
+    - low: frontera de 0s
+    - mid: puntero actual  
+    - high: frontera de 2s
+    
+    Complejidad: O(n) tiempo, O(1) espacio - UNA pasada
+    """
+    low = mid = 0
+    high = len(nums) - 1
     
     while mid <= high:
         if nums[mid] == 0:
@@ -7838,14 +11548,64 @@ def merge(left, right):
             mid += 1
         elif nums[mid] == 1:
             mid += 1
-        else:
+        else:  # nums[mid] == 2
             nums[mid], nums[high] = nums[high], nums[mid]
             high -= 1
+            # ¡NO avanzar mid! El swap puede traer un 0
 
 arr = [2, 0, 2, 1, 1, 0]
 sort_colors(arr)
 print(arr)  # [0, 0, 1, 1, 2, 2]''',
                 language="python"
+            ),
+            CodeExample(
+                title="Counting Sort — Cuando los valores tienen rango limitado",
+                description="O(n + k) — más rápido que cualquier sort por comparación",
+                code='''def counting_sort(arr: list[int]) -> list[int]:
+    """
+    Funciona cuando los valores están en un rango [0, k].
+    Cuenta ocurrencias y reconstruye el array.
+    
+    Complejidad: O(n + k) tiempo y espacio
+    Supera O(n log n) cuando k es pequeño.
+    """
+    if not arr:
+        return arr
+    
+    max_val = max(arr)
+    count = [0] * (max_val + 1)
+    
+    # Contar ocurrencias
+    for num in arr:
+        count[num] += 1
+    
+    # Reconstruir
+    result = []
+    for val, cnt in enumerate(count):
+        result.extend([val] * cnt)
+    
+    return result
+
+print(counting_sort([4, 2, 2, 8, 3, 3, 1]))
+# [1, 2, 2, 3, 3, 4, 8]
+
+# Útil para: edades, calificaciones, caracteres ASCII''',
+                language="python"
+            )
+        ],
+        quiz_questions=[
+            QuizQuestion(
+                id="sort-final-1",
+                question="¿Qué sorting algorithm usa Python internamente con sorted() y .sort()?",
+                options=[
+                    "Quick Sort porque es el más rápido",
+                    "Merge Sort porque es estable",
+                    "Tim Sort, un híbrido de Merge Sort e Insertion Sort optimizado para datos reales",
+                    "Heap Sort porque usa O(1) espacio"
+                ],
+                correct_index=2,
+                explanation="Python usa Tim Sort, creado por Tim Peters. Es un híbrido inteligente: usa Insertion Sort para runs pequeños y Merge Sort para combinarlos. Es O(n log n) en peor caso, estable, y especialmente eficiente con datos parcialmente ordenados — puede ser O(n) si los datos ya están casi ordenados.",
+                difficulty="medium"
             )
         ],
         prerequisites=[],

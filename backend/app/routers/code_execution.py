@@ -115,14 +115,17 @@ def run_code_safely(code: str, test_input: dict, function_name: str, timeout: fl
         }
         
         # Agregar imports seguros
-        from collections import defaultdict, Counter, deque
+        from collections import defaultdict, Counter, deque, OrderedDict
         from heapq import heappush, heappop, heapify
         from itertools import permutations, combinations
         from functools import lru_cache
+        import math
         
         exec_globals["defaultdict"] = defaultdict
         exec_globals["Counter"] = Counter
         exec_globals["deque"] = deque
+        exec_globals["OrderedDict"] = OrderedDict
+        exec_globals["math"] = math
         exec_globals["heappush"] = heappush
         exec_globals["heappop"] = heappop
         exec_globals["heapify"] = heapify
@@ -136,7 +139,15 @@ def run_code_safely(code: str, test_input: dict, function_name: str, timeout: fl
                 self.val = val
                 self.next = next
         
+        # Definir TreeNode para problemas de árboles
+        class TreeNode:
+            def __init__(self, val=0, left=None, right=None):
+                self.val = val
+                self.left = left
+                self.right = right
+        
         exec_globals["ListNode"] = ListNode
+        exec_globals["TreeNode"] = TreeNode
         
         start_time = time.time()
         
@@ -179,7 +190,18 @@ def run_code_safely(code: str, test_input: dict, function_name: str, timeout: fl
                 return result
         else:
             # Test de función normal
+            # Hacer deep copy de inputs mutables para detectar modificaciones in-place
+            import copy
+            input_copy = copy.deepcopy(processed_input)
             output = func_or_class(**processed_input)
+            
+            # Si la función retorna None, verificar si modificó el input in-place
+            if output is None:
+                # Buscar el primer parámetro tipo lista que cambió
+                for key in processed_input:
+                    if isinstance(processed_input[key], list) and processed_input[key] != input_copy[key]:
+                        output = processed_input[key]
+                        break
         
         # Postprocesar el output para comparación
         output = postprocess_output(output)
@@ -254,6 +276,34 @@ def treenode_to_array(node: Any) -> list:
     return result
 
 
+def array_to_listnode(arr: list) -> Any:
+    """Convierte un array a una linked list (ListNode)."""
+    if not arr:
+        return None
+    
+    class ListNode:
+        def __init__(self, val=0, next=None):
+            self.val = val
+            self.next = next
+    
+    head = ListNode(arr[0])
+    current = head
+    for val in arr[1:]:
+        current.next = ListNode(val)
+        current = current.next
+    return head
+
+
+def listnode_to_array(node: Any) -> list:
+    """Convierte una linked list (ListNode) a array."""
+    result = []
+    current = node
+    while current:
+        result.append(current.val)
+        current = current.next
+    return result
+
+
 def preprocess_test_input(test_input: dict) -> dict:
     """Preprocesa inputs para convertir arrays a estructuras apropiadas."""
     processed = {}
@@ -264,6 +314,9 @@ def preprocess_test_input(test_input: dict) -> dict:
         elif key == 'root' and isinstance(value, list):
             # Convertir array a TreeNode
             processed[key] = array_to_treenode(value)
+        elif key == 'lists' and isinstance(value, list):
+            # Convertir lista de arrays a lista de ListNodes (Merge K Sorted Lists)
+            processed[key] = [array_to_listnode(arr) if isinstance(arr, list) else arr for arr in value]
         else:
             processed[key] = value
     return processed
@@ -272,7 +325,7 @@ def preprocess_test_input(test_input: dict) -> dict:
 def postprocess_output(output: Any) -> Any:
     """Postprocesa outputs para convertir estructuras a formas comparables."""
     if output is None:
-        return []
+        return None
     if hasattr(output, 'val') and hasattr(output, 'next'):
         # Es un ListNode, convertir a array
         return listnode_to_array(output)
@@ -318,14 +371,14 @@ async def run_code(request: CodeExecutionRequest):
     """
     Ejecuta código y lo prueba contra los test cases.
     """
-    print(f"🔍 Ejecutando código para función: {request.functionName}")
-    print(f"📝 Código: {request.code[:200]}...")
-    print(f"🧪 Test cases: {len(request.testCases)}")
+    print(f"[CODE] Ejecutando codigo para funcion: {request.functionName}")
+    print(f"[CODE] Codigo: {request.code[:200]}...")
+    print(f"[TEST] Test cases: {len(request.testCases)}")
     
     # Verificar seguridad básica del código
     is_safe, error_msg = is_code_safe(request.code)
     if not is_safe:
-        print(f"❌ Código no seguro: {error_msg}")
+        print(f"[ERROR] Codigo no seguro: {error_msg}")
         return CodeExecutionResult(
             success=False,
             output=None,
@@ -342,7 +395,7 @@ async def run_code(request: CodeExecutionRequest):
     first_error = None
     
     for i, test_case in enumerate(request.testCases):
-        print(f"🧪 Ejecutando test case {i+1}: {test_case.input}")
+        print(f"[TEST] Ejecutando test case {i+1}: {test_case.input}")
         result = run_code_safely(
             request.code, 
             test_case.input, 
@@ -350,14 +403,14 @@ async def run_code(request: CodeExecutionRequest):
         )
         
         total_time += result["execution_time"]
-        print(f"⏱️ Tiempo: {result['execution_time']:.3f}s, Éxito: {result['success']}")
+        print(f"[TIME] Tiempo: {result['execution_time']:.3f}s, Exito: {result['success']}")
         
         passed = False
         if result["success"]:
             passed = compare_outputs(result["output"], test_case.expected)
-            print(f"✅ Test {'PASÓ' if passed else 'FALLÓ'}: esperado={test_case.expected}, obtenido={result['output']}")
+            print(f"[RESULT] Test {'PASO' if passed else 'FALLO'}: esperado={test_case.expected}, obtenido={result['output']}")
         else:
-            print(f"❌ Error ejecutando: {result['error']}")
+            print(f"[ERROR] Error ejecutando: {result['error']}")
             if first_error is None:
                 first_error = result["error"]
         
@@ -374,7 +427,7 @@ async def run_code(request: CodeExecutionRequest):
             error=result["error"]
         ))
     
-    print(f"📊 Resultado final: {sum(1 for tr in test_results if tr.passed)}/{len(test_results)} tests pasaron")
+    print(f"[RESULT] Resultado final: {sum(1 for tr in test_results if tr.passed)}/{len(test_results)} tests pasaron")
     
     return CodeExecutionResult(
         success=all_passed,

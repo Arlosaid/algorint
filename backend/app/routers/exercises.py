@@ -1195,7 +1195,525 @@ Cada vez puedes subir 1 o 2 escalones. ¿De cuántas formas distintas puedes sub
         similarProblems=["min-cost-climbing-stairs", "fibonacci-number"],
         order=8,
         points=10
-    )
+    ),
+
+    # === MÓDULO: Linked Lists ===
+    Exercise(
+        id="reverse-linked-list",
+        moduleId="linked-lists",
+        lessonId="linked-lists-reversal",
+        title="Reverse Linked List",
+        description="""Dada la cabeza de una singly linked list, invierte la lista y retorna la lista invertida.
+
+**Ejemplo:**
+- Input: head = [1,2,3,4,5]
+- Output: [5,4,3,2,1]""",
+        difficulty=Difficulty.BEGINNER,
+        estimatedMinutes=15,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def reverse_list(head):
+    """
+    Invierte una linked list.
+    
+    Args:
+        head: ListNode - cabeza de la lista
+    Returns:
+        ListNode - cabeza de la lista invertida
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def reverse_list(head):
+    """
+    Usa 3 punteros: prev, curr, next.
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
+    prev = None
+    curr = head
+    
+    while curr:
+        next_node = curr.next
+        curr.next = prev
+        prev = curr
+        curr = next_node
+    
+    return prev''',
+        hints=[
+            "Necesitas cambiar la dirección de los punteros next",
+            "Usa tres punteros: prev, curr, next_node",
+            "En cada paso: guarda next, apunta curr a prev, avanza ambos"
+        ],
+        testCases=[
+            TestCase(input={"head": [1, 2, 3, 4, 5]}, expected=[5, 4, 3, 2, 1], isHidden=False),
+            TestCase(input={"head": [1, 2]}, expected=[2, 1], isHidden=False),
+            TestCase(input={"head": []}, expected=[], isHidden=True),
+            TestCase(input={"head": [1]}, expected=[1], isHidden=True),
+        ],
+        constraints=["0 ≤ número de nodos ≤ 5000"],
+        patterns=[AlgorithmPattern.TWO_POINTERS],
+        companies=["Amazon", "Microsoft", "Facebook"],
+        similarProblems=["reverse-linked-list-ii", "palindrome-linked-list"],
+        order=9,
+        points=10
+    ),
+
+    # === MÓDULO: Trees ===
+    Exercise(
+        id="max-depth-binary-tree",
+        moduleId="trees",
+        lessonId="trees-dfs",
+        title="Maximum Depth of Binary Tree",
+        description="""Dado el nodo raíz de un árbol binario, retorna su **profundidad máxima**.
+
+La profundidad máxima es el número de nodos a lo largo del camino más largo desde la raíz hasta la hoja más lejana.
+
+**Ejemplo:**
+- Input: root = [3,9,20,null,null,15,7]
+- Output: 3""",
+        difficulty=Difficulty.BEGINNER,
+        estimatedMinutes=10,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def max_depth(root) -> int:
+    """
+    Encuentra la profundidad máxima del árbol.
+    
+    Args:
+        root: TreeNode
+    Returns:
+        int - profundidad máxima
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def max_depth(root) -> int:
+    """
+    DFS recursivo.
+    Complejidad: O(n) tiempo, O(h) espacio
+    """
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))''',
+        hints=[
+            "Usa recursión: profundidad = 1 + max(izq, der)",
+            "Caso base: si el nodo es None, la profundidad es 0",
+            "max_depth(root) = 1 + max(max_depth(left), max_depth(right))"
+        ],
+        testCases=[
+            TestCase(input={"root": [3, 9, 20, None, None, 15, 7]}, expected=3, isHidden=False),
+            TestCase(input={"root": [1, None, 2]}, expected=2, isHidden=False),
+            TestCase(input={"root": []}, expected=0, isHidden=True),
+            TestCase(input={"root": [1]}, expected=1, isHidden=True),
+        ],
+        constraints=["0 ≤ número de nodos ≤ 10⁴"],
+        patterns=[AlgorithmPattern.DFS],
+        companies=["Amazon", "Google", "Facebook"],
+        similarProblems=["minimum-depth-of-binary-tree", "balanced-binary-tree"],
+        order=10,
+        points=10
+    ),
+
+    # === MÓDULO: BST ===
+    Exercise(
+        id="validate-bst",
+        moduleId="bst",
+        lessonId="bst-intro",
+        title="Validate Binary Search Tree",
+        description="""Dado el nodo raíz de un árbol binario, determina si es un **BST válido**.
+
+Un BST válido:
+- Subárbol izquierdo solo tiene valores **menores** que el nodo.
+- Subárbol derecho solo tiene valores **mayores** que el nodo.
+- Ambos subárboles también son BSTs.""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=20,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def is_valid_bst(root) -> bool:
+    """
+    Verifica si el árbol es un BST válido.
+    
+    Args:
+        root: TreeNode
+    Returns:
+        bool
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def is_valid_bst(root) -> bool:
+    """
+    DFS con rangos (min, max) heredados.
+    Complejidad: O(n) tiempo, O(h) espacio
+    """
+    def validate(node, min_val, max_val):
+        if not node:
+            return True
+        if node.val <= min_val or node.val >= max_val:
+            return False
+        return (validate(node.left, min_val, node.val) and
+                validate(node.right, node.val, max_val))
+    
+    return validate(root, float('-inf'), float('inf'))''',
+        hints=[
+            "No basta con comparar padre con hijos directos",
+            "Cada nodo tiene un rango válido (min, max)",
+            "Al ir a la izquierda el max se actualiza, a la derecha el min"
+        ],
+        testCases=[
+            TestCase(input={"root": [2, 1, 3]}, expected=True, isHidden=False),
+            TestCase(input={"root": [5, 1, 4, None, None, 3, 6]}, expected=False, isHidden=False),
+            TestCase(input={"root": [1]}, expected=True, isHidden=True),
+        ],
+        constraints=["1 ≤ número de nodos ≤ 10⁴"],
+        patterns=[AlgorithmPattern.DFS, AlgorithmPattern.TREE],
+        companies=["Amazon", "Facebook", "Microsoft"],
+        similarProblems=["inorder-successor-in-bst"],
+        order=11,
+        points=15
+    ),
+
+    # === MÓDULO: Heaps ===
+    Exercise(
+        id="kth-largest-element",
+        moduleId="heaps",
+        lessonId="heaps-intro",
+        title="Kth Largest Element in Array",
+        description="""Dado un array de enteros `nums` y un entero `k`, retorna el **k-ésimo elemento más grande**.
+
+Es el k-ésimo más grande en orden ordenado, no el k-ésimo distinto.
+
+**Ejemplo:**
+- Input: nums = [3,2,1,5,6,4], k = 2
+- Output: 5""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=20,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def find_kth_largest(nums: list[int], k: int) -> int:
+    """
+    Encuentra el k-ésimo elemento más grande.
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def find_kth_largest(nums: list[int], k: int) -> int:
+    """
+    Min-heap de tamaño k.
+    Complejidad: O(n log k) tiempo, O(k) espacio
+    """
+    heap = []
+    for num in nums:
+        heappush(heap, num)
+        if len(heap) > k:
+            heappop(heap)
+    return heap[0]''',
+        hints=[
+            "Usa un min-heap de tamaño k",
+            "heappush y heappop mantienen el heap ordenado",
+            "El tope del min-heap de tamaño k es el k-ésimo más grande"
+        ],
+        testCases=[
+            TestCase(input={"nums": [3, 2, 1, 5, 6, 4], "k": 2}, expected=5, isHidden=False),
+            TestCase(input={"nums": [3, 2, 3, 1, 2, 4, 5, 5, 6], "k": 4}, expected=4, isHidden=False),
+            TestCase(input={"nums": [1], "k": 1}, expected=1, isHidden=True),
+        ],
+        constraints=["1 ≤ k ≤ nums.length ≤ 10⁵"],
+        patterns=[AlgorithmPattern.HEAP],
+        companies=["Facebook", "Amazon", "Google", "Microsoft"],
+        similarProblems=["kth-smallest-element-in-a-bst", "top-k-frequent-elements"],
+        order=12,
+        points=15
+    ),
+
+    # === MÓDULO: Recursion-Backtracking ===
+    Exercise(
+        id="subsets",
+        moduleId="recursion-backtracking",
+        lessonId="backtracking-subsets",
+        title="Subsets",
+        description="""Dado un array de enteros **únicos** `nums`, retorna todos los posibles subconjuntos (power set).
+
+El conjunto solución NO debe contener subconjuntos duplicados.
+
+**Ejemplo:**
+- Input: nums = [1,2,3]
+- Output: [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=20,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def subsets(nums: list[int]) -> list[list[int]]:
+    """
+    Genera todos los subconjuntos posibles.
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def subsets(nums: list[int]) -> list[list[int]]:
+    """
+    Backtracking: para cada elemento, incluirlo o no.
+    Complejidad: O(n × 2^n) tiempo, O(n) espacio
+    """
+    result = []
+    
+    def backtrack(start, current):
+        result.append(current[:])
+        for i in range(start, len(nums)):
+            current.append(nums[i])
+            backtrack(i + 1, current)
+            current.pop()
+    
+    backtrack(0, [])
+    return result''',
+        hints=[
+            "Para cada elemento tienes 2 opciones: incluirlo o no",
+            "Usa backtracking: explora ambas opciones recursivamente",
+            "backtrack(start, current): agrega nums[i] y recursa con i+1"
+        ],
+        testCases=[
+            TestCase(input={"nums": [1, 2, 3]}, expected=[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]], isHidden=False),
+            TestCase(input={"nums": [0]}, expected=[[], [0]], isHidden=False),
+            TestCase(input={"nums": [1, 2]}, expected=[[], [1], [1, 2], [2]], isHidden=True),
+        ],
+        constraints=["1 ≤ nums.length ≤ 10", "Todos los elementos son únicos"],
+        patterns=[AlgorithmPattern.BACKTRACKING],
+        companies=["Amazon", "Facebook", "Google"],
+        similarProblems=["subsets-ii", "permutations", "combinations"],
+        order=13,
+        points=15
+    ),
+
+    # === MÓDULO: Sorting ===
+    Exercise(
+        id="sort-colors",
+        moduleId="sorting-algorithms",
+        lessonId="sorting-intro",
+        title="Sort Colors (Dutch National Flag)",
+        description="""Dado un array `nums` con objetos coloreados de rojo (0), blanco (1) y azul (2), ordénalos **in-place** en el orden: rojo, blanco, azul.
+
+Debes resolverlo **sin usar sort()**.
+
+**Ejemplo:**
+- Input: nums = [2,0,2,1,1,0]
+- Output: [0,0,1,1,2,2]""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=20,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def sort_colors(nums: list[int]) -> None:
+    """
+    Ordena el array de colores (0, 1, 2) in-place.
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def sort_colors(nums: list[int]) -> None:
+    """
+    Dutch National Flag de Dijkstra.
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
+    low, mid, high = 0, 0, len(nums) - 1
+    
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1
+            mid += 1
+        elif nums[mid] == 2:
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+        else:
+            mid += 1''',
+        hints=[
+            "Usa tres punteros: low, mid, high",
+            "low marca el final de los 0s, high el inicio de los 2s",
+            "mid recorre: si es 0 swap con low, si es 2 swap con high"
+        ],
+        testCases=[
+            TestCase(input={"nums": [2, 0, 2, 1, 1, 0]}, expected=[0, 0, 1, 1, 2, 2], isHidden=False),
+            TestCase(input={"nums": [2, 0, 1]}, expected=[0, 1, 2], isHidden=False),
+            TestCase(input={"nums": [0]}, expected=[0], isHidden=True),
+            TestCase(input={"nums": [1, 0]}, expected=[0, 1], isHidden=True),
+        ],
+        constraints=["1 ≤ n ≤ 300", "nums[i] es 0, 1, o 2"],
+        patterns=[AlgorithmPattern.TWO_POINTERS, AlgorithmPattern.SORTING],
+        companies=["Microsoft", "Amazon", "Facebook"],
+        similarProblems=["sort-array-by-parity", "wiggle-sort"],
+        order=14,
+        points=15
+    ),
+
+    # === MÓDULO: Bit Manipulation ===
+    Exercise(
+        id="number-of-1-bits",
+        moduleId="bit-manipulation",
+        lessonId="bit-operadores-basicos",
+        title="Number of 1 Bits (Hamming Weight)",
+        description="""Escribe una función que tome un entero y retorne el número de bits '1' que tiene (Hamming Weight).
+
+**Ejemplo:**
+- Input: n = 11 (binario: 1011)
+- Output: 3""",
+        difficulty=Difficulty.BEGINNER,
+        estimatedMinutes=10,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def hamming_weight(n: int) -> int:
+    """
+    Cuenta el número de bits 1 en n.
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def hamming_weight(n: int) -> int:
+    """
+    Brian Kernighan: n & (n-1) elimina el bit 1 más bajo.
+    Complejidad: O(k) tiempo donde k = número de bits 1
+    """
+    count = 0
+    while n:
+        n &= (n - 1)
+        count += 1
+    return count''',
+        hints=[
+            "n & 1 te dice si el último bit es 1",
+            "n >> 1 desplaza los bits a la derecha",
+            "Truco: n & (n-1) elimina el bit 1 más bajo"
+        ],
+        testCases=[
+            TestCase(input={"n": 11}, expected=3, isHidden=False),
+            TestCase(input={"n": 128}, expected=1, isHidden=False),
+            TestCase(input={"n": 255}, expected=8, isHidden=False),
+            TestCase(input={"n": 0}, expected=0, isHidden=True),
+        ],
+        constraints=["0 ≤ n ≤ 2³¹ - 1"],
+        patterns=[AlgorithmPattern.HASH_MAP],
+        companies=["Apple", "Microsoft"],
+        similarProblems=["counting-bits", "reverse-bits"],
+        order=15,
+        points=10
+    ),
+
+    # === MÓDULO: Tries ===
+    Exercise(
+        id="implement-trie",
+        moduleId="tries",
+        lessonId="tries-intro",
+        title="Implement Trie (Prefix Tree)",
+        description="""Implementa la clase **Trie** con las operaciones:
+- `Trie()`: Inicializa el trie.
+- `insert(word)`: Inserta word.
+- `search(word)`: Retorna true si word está en el trie.
+- `starts_with(prefix)`: Retorna true si hay alguna palabra que empiece con prefix.""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=25,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''class Trie:
+    def __init__(self):
+        # Tu código aquí
+        pass
+    
+    def insert(self, word: str) -> None:
+        pass
+    
+    def search(self, word: str) -> bool:
+        pass
+    
+    def starts_with(self, prefix: str) -> bool:
+        pass''',
+        solution='''class Trie:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+    
+    def insert(self, word: str) -> None:
+        node = self
+        for char in word:
+            if char not in node.children:
+                node.children[char] = Trie()
+            node = node.children[char]
+        node.is_end = True
+    
+    def search(self, word: str) -> bool:
+        node = self._find(word)
+        return node is not None and node.is_end
+    
+    def starts_with(self, prefix: str) -> bool:
+        return self._find(prefix) is not None
+    
+    def _find(self, word: str):
+        node = self
+        for char in word:
+            if char not in node.children:
+                return None
+            node = node.children[char]
+        return node''',
+        hints=[
+            "Cada nodo tiene hasta 26 hijos (una por letra)",
+            "Usa un diccionario children = {} en cada nodo",
+            "Marca el final de una palabra con is_end = True"
+        ],
+        testCases=[
+            TestCase(
+                input={"operations": ["Trie", "insert", "search", "search", "starts_with", "insert", "search"],
+                       "params": [[], ["apple"], ["apple"], ["app"], ["app"], ["app"], ["app"]]},
+                expected=[None, None, True, False, True, None, True],
+                isHidden=False
+            ),
+        ],
+        constraints=["1 ≤ word.length ≤ 2000"],
+        patterns=[AlgorithmPattern.TRIE],
+        companies=["Google", "Amazon", "Microsoft"],
+        similarProblems=["add-and-search-word", "word-search-ii"],
+        order=16,
+        points=20
+    ),
+
+    # === MÓDULO: Dynamic Programming (extra) ===
+    Exercise(
+        id="house-robber",
+        moduleId="dynamic-programming",
+        lessonId="dp-1d-patterns",
+        title="House Robber",
+        description="""Eres un ladrón planeando robar casas en una calle. Casas adyacentes tienen alarmas conectadas: si robas dos adyacentes, se activa la alarma.
+
+Dado un array `nums` representando el dinero en cada casa, retorna la **máxima cantidad** sin activar alarmas.
+
+**Ejemplo:**
+- Input: nums = [2,7,9,3,1]
+- Output: 12 (robas casa 1+3+5: $2+$9+$1=$12)""",
+        difficulty=Difficulty.INTERMEDIATE,
+        estimatedMinutes=20,
+        status=ExerciseStatus.NOT_STARTED,
+        starterCode='''def rob(nums: list[int]) -> int:
+    """
+    Máximo dinero sin robar casas adyacentes.
+    """
+    # Tu código aquí
+    pass''',
+        solution='''def rob(nums: list[int]) -> int:
+    """
+    DP: en cada casa, max(robar + prev2, no robar = prev1).
+    Complejidad: O(n) tiempo, O(1) espacio
+    """
+    if not nums:
+        return 0
+    
+    prev2 = 0
+    prev1 = 0
+    
+    for num in nums:
+        current = max(prev1, prev2 + num)
+        prev2 = prev1
+        prev1 = current
+    
+    return prev1''',
+        hints=[
+            "En cada casa decides: robarla o saltarla",
+            "Si robas casa i, no puedes robar i-1",
+            "dp[i] = max(dp[i-1], dp[i-2] + nums[i])"
+        ],
+        testCases=[
+            TestCase(input={"nums": [1, 2, 3, 1]}, expected=4, isHidden=False),
+            TestCase(input={"nums": [2, 7, 9, 3, 1]}, expected=12, isHidden=False),
+            TestCase(input={"nums": [0]}, expected=0, isHidden=True),
+            TestCase(input={"nums": [2, 1, 1, 2]}, expected=4, isHidden=True),
+        ],
+        constraints=["1 ≤ nums.length ≤ 100", "0 ≤ nums[i] ≤ 400"],
+        patterns=[AlgorithmPattern.DYNAMIC_PROGRAMMING],
+        companies=["Amazon", "Google", "Microsoft"],
+        similarProblems=["house-robber-ii", "house-robber-iii"],
+        order=17,
+        points=15
+    ),
 ]
 
 
