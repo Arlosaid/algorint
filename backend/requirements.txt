@@ -1,0 +1,21 @@
+# CodePath Academy Backend Requirements
+# ======================================
+
+# Framework principal
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Validación y serialización
+pydantic>=2.5.0
+
+# Utilidades
+python-multipart>=0.0.6
+
+# Cliente HTTP para APIs externas (IA gratuita)
+httpx>=0.25.0
+
+# Para ejecutar código Python de forma segura (sandbox)
+RestrictedPython>=6.0
+
+# Testing (opcional)
+pytest>=7.4.0

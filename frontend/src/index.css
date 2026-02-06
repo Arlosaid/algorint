@@ -1,0 +1,334 @@
+/* 
+ * Algorint - Estilos Globales
+ * ===========================
+ * Este archivo contiene los estilos base de Tailwind y estilos personalizados
+ * para la aplicación educativa de algoritmos.
+ * 
+ * Domina el código, conquista tu futuro.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ESTILOS BASE
+   ============================================ */
+@layer base {
+  /* Reset y estilos globales */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-900 text-dark-100 font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-500;
+  }
+
+  /* Selección de texto */
+  ::selection {
+    @apply bg-primary-500/30 text-white;
+  }
+}
+
+/* ============================================
+   COMPONENTES REUTILIZABLES
+   ============================================ */
+@layer components {
+  /* Botones */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-900
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 
+           focus:ring-primary-500 shadow-lg hover:shadow-glow;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary-500 text-white hover:bg-secondary-600 
+           focus:ring-secondary-500 shadow-lg hover:shadow-glow-blue;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-dark-600 text-dark-200 
+           hover:border-primary-500 hover:text-primary-400
+           focus:ring-primary-500;
+  }
+
+  .btn-ghost {
+    @apply btn text-dark-300 hover:text-white hover:bg-dark-800
+           focus:ring-dark-500;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-dark-800 rounded-xl border border-dark-700 
+           shadow-lg transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-primary-500/50 hover:shadow-glow 
+           hover:-translate-y-1 cursor-pointer;
+  }
+
+  /* Badges de dificultad */
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .badge-easy {
+    @apply badge bg-difficulty-easy/20 text-difficulty-easy border border-difficulty-easy/30;
+  }
+
+  .badge-medium {
+    @apply badge bg-difficulty-medium/20 text-difficulty-medium border border-difficulty-medium/30;
+  }
+
+  .badge-hard {
+    @apply badge bg-difficulty-hard/20 text-difficulty-hard border border-difficulty-hard/30;
+  }
+
+  /* Input fields */
+  .input {
+    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 rounded-lg
+           text-dark-100 placeholder-dark-500
+           focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500
+           transition-colors duration-200;
+  }
+
+  /* Code blocks */
+  .code-block {
+    @apply bg-code-bg rounded-lg p-4 font-mono text-sm overflow-x-auto
+           border border-dark-700;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-2 bg-dark-700 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-gradient-to-r from-primary-500 to-secondary-500 
+           rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* Tooltips */
+  .tooltip {
+    @apply invisible absolute z-50 px-2 py-1 text-xs text-white 
+           bg-dark-700 rounded shadow-lg whitespace-nowrap
+           group-hover:visible;
+  }
+
+  /* Section headers */
+  .section-title {
+    @apply text-2xl md:text-3xl font-bold text-white mb-2;
+  }
+
+  .section-subtitle {
+    @apply text-dark-400 text-lg;
+  }
+
+  /* Glow effects */
+  .glow-green {
+    @apply shadow-[0_0_30px_rgba(34,197,94,0.3)];
+  }
+
+  .glow-blue {
+    @apply shadow-[0_0_30px_rgba(59,130,246,0.3)];
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-400 to-secondary-400 
+           bg-clip-text text-transparent;
+  }
+
+  /* Lesson components */
+  .lesson-card {
+    @apply card p-6 space-y-4;
+  }
+
+  .lesson-section {
+    @apply border-l-4 border-primary-500 pl-4 py-2;
+  }
+
+  /* Code explanation */
+  .code-line {
+    @apply flex items-start gap-4 py-1 hover:bg-dark-700/50 px-2 -mx-2 rounded;
+  }
+
+  .code-line-number {
+    @apply text-dark-500 font-mono text-sm w-8 flex-shrink-0 select-none;
+  }
+
+  .code-line-content {
+    @apply font-mono text-sm flex-1;
+  }
+
+  .code-line-explanation {
+    @apply text-dark-400 text-sm max-w-md;
+  }
+}
+
+/* ============================================
+   UTILIDADES PERSONALIZADAS
+   ============================================ */
+@layer utilities {
+  /* Animaciones de entrada */
+  .animate-in {
+    animation: animateIn 0.3s ease-out;
+  }
+
+  @keyframes animateIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Efecto de typing para código */
+  .typing-effect {
+    overflow: hidden;
+    border-right: 2px solid;
+    white-space: nowrap;
+    animation: 
+      typing 3s steps(40, end),
+      blink-caret 0.75s step-end infinite;
+  }
+
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #22c55e }
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-radial {
+    background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text balance for better readability */
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ============================================
+   SYNTAX HIGHLIGHTING OVERRIDES
+   ============================================ */
+.syntax-highlighter {
+  @apply !bg-code-bg !p-4 !rounded-lg !font-mono !text-sm;
+}
+
+.syntax-highlighter code {
+  @apply !font-mono;
+}
+
+/* ============================================
+   PROSE/MARKDOWN CUSTOMIZATION
+   ============================================ */
+.prose table {
+  @apply w-full border-collapse;
+}
+
+.prose thead {
+  @apply bg-dark-700;
+}
+
+.prose th {
+  @apply px-4 py-2 text-left font-semibold text-dark-200 border border-dark-600;
+}
+
+.prose td {
+  @apply px-4 py-2 text-dark-300 border border-dark-600;
+}
+
+.prose tbody tr:nth-child(even) {
+  @apply bg-dark-800/50;
+}
+
+.prose tbody tr:hover {
+  @apply bg-dark-700/50;
+}
+
+.prose code:not(pre code) {
+  @apply bg-dark-700 px-1.5 py-0.5 rounded text-primary-400 text-sm font-mono;
+}
+
+.prose code::before,
+.prose code::after {
+  content: none;
+}
+
+/* ============================================
+   MONACO EDITOR CUSTOMIZATION
+   ============================================ */
+.monaco-editor {
+  @apply rounded-lg overflow-hidden;
+}
+
+.monaco-editor .margin {
+  @apply bg-dark-800 !important;
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 768px) {
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700
+           flex justify-around py-2 z-50;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  body {
+    @apply bg-white text-black;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
