@@ -1,10 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
+import React, { useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
   Flame,
   Trophy,
   Target,
-  Calendar,
   TrendingUp,
   Clock,
   BookOpen,
@@ -13,14 +12,17 @@ import {
   Award,
   Star,
   CheckCircle,
-  Play,
-  BarChart2,
-  Brain,
-  Lightbulb,
   Medal,
   Crown,
   Rocket,
-  ChevronRight
+  Circle,
+  ArrowRight,
+  FileCode,
+  BarChart2,
+  FileText,
+  FolderKey,
+  Link2,
+  Layers,
 } from 'lucide-react';
 import { Card, Button, ProgressBar } from '../components/ui';
 import { useProgress } from '../context/ProgressContext';
@@ -32,8 +34,8 @@ import { useProgress } from '../context/ProgressContext';
  * calendario de actividad, logros y metas.
  */
 const RoadmapPage: React.FC = () => {
-  const { progress, getTotalProgress } = useProgress();
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'all'>('month');
+  const navigate = useNavigate();
+  const { progress, getTotalProgress, getModuleProgress } = useProgress();
 
   // Calcular estadísticas
   const stats = useMemo(() => {
@@ -61,39 +63,8 @@ const RoadmapPage: React.FC = () => {
     };
   }, [progress, getTotalProgress]);
 
-  // Generar datos del calendario de actividad (últimos 12 weeks)
-  const activityData = useMemo(() => {
-    const weeks: { date: Date; level: number }[][] = [];
-    const today = new Date();
-    
-    // Simular actividad basada en el progreso real
-    for (let w = 11; w >= 0; w--) {
-      const week: { date: Date; level: number }[] = [];
-      for (let d = 0; d < 7; d++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - (w * 7 + (6 - d)));
-        
-        // Nivel basado en hash del día (para simular actividad consistente)
-        const dayHash = date.getDate() + date.getMonth() * 31;
-        const hasActivity = dayHash % 3 !== 0 && date <= today;
-        const level = hasActivity ? (dayHash % 4) : 0;
-        
-        week.push({ date, level });
-      }
-      weeks.push(week);
-    }
-    return weeks;
-  }, []);
-
-  // Formatear tiempo
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}min`;
-    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}min`;
-  };
-
-  // Logros disponibles
-  const achievements = [
+  // Logros disponibles (reservado para futura sección de logros en la UI)
+  const _achievements = [
     { id: 'first-lesson', title: 'Primera Lección', desc: 'Completa tu primera lección', icon: BookOpen, unlocked: stats.lessonsCompleted >= 1, color: 'primary' },
     { id: 'first-exercise', title: 'Primer Código', desc: 'Resuelve tu primer ejercicio', icon: Code2, unlocked: stats.exercisesSolved >= 1, color: 'secondary' },
     { id: 'streak-3', title: 'En Racha', desc: '3 días consecutivos', icon: Flame, unlocked: stats.longestStreak >= 3, color: 'accent' },
@@ -107,37 +78,6 @@ const RoadmapPage: React.FC = () => {
     { id: '100-progress', title: 'Maestro', desc: '100% completado', icon: Rocket, unlocked: stats.totalProgress >= 100, color: 'accent' },
     { id: '1-hour', title: 'Dedicado', desc: '1 hora de estudio', icon: Clock, unlocked: stats.totalTimeSpent >= 3600, color: 'primary' },
   ];
-
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
-
-  // Metas sugeridas basadas en progreso
-  const suggestedGoals = useMemo(() => {
-    const goals = [];
-    
-    if (stats.lessonsCompleted === 0) {
-      goals.push({ text: 'Completa tu primera lección', link: '/modules', priority: 'high' });
-    }
-    if (stats.exercisesSolved === 0) {
-      goals.push({ text: 'Resuelve tu primer ejercicio', link: '/practice', priority: 'high' });
-    }
-    if (stats.currentStreak < 3) {
-      goals.push({ text: `Mantén tu racha por ${3 - stats.currentStreak} días más`, link: '/modules', priority: 'medium' });
-    }
-    if (stats.exercisesByDiff.medium === 0 && stats.exercisesSolved >= 3) {
-      goals.push({ text: 'Intenta un ejercicio de dificultad Medium', link: '/practice', priority: 'medium' });
-    }
-    if (stats.totalProgress < 25) {
-      goals.push({ text: `Alcanza el 25% de progreso (faltan ${25 - Math.floor(stats.totalProgress)}%)`, link: '/modules', priority: 'low' });
-    }
-    
-    // Si no hay metas pendientes
-    if (goals.length === 0) {
-      goals.push({ text: 'Practica ejercicios de entrevista', link: '/interview', priority: 'medium' });
-      goals.push({ text: 'Repasa patrones de algoritmos', link: '/patterns', priority: 'low' });
-    }
-    
-    return goals.slice(0, 3);
-  }, [stats]);
 
   return (
     <div className="min-h-screen py-12">
@@ -321,7 +261,7 @@ const roadmapModules = [
     number: 2,
     title: 'Complejidad Algorítmica (Big O)',
     description: 'Aprende a analizar y comparar la eficiencia de algoritmos.',
-    icon: <BarChart3 size={28} />,
+    icon: <BarChart2 size={28} />,
     duration: '6 horas',
     lessons: 5,
     exercises: 10,
