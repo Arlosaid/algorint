@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, CSSProperties } from 'react';
 
 interface CardProps {
   children: ReactNode;
@@ -7,6 +7,7 @@ interface CardProps {
   onClick?: () => void;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   id?: string;
+  style?: CSSProperties;
 }
 
 /**
@@ -26,6 +27,7 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   padding = 'md',
   id,
+  style,
 }) => {
   const baseClasses = `
     bg-dark-800 rounded-xl border border-dark-700 
@@ -47,6 +49,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       id={id}
+      style={style}
       className={`${baseClasses} ${hoverClasses} ${paddingClasses[padding]} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}

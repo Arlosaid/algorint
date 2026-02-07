@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Play,
   Lightbulb,
-  Eye,
   EyeOff,
   CheckCircle,
   XCircle,
@@ -14,12 +13,9 @@ import {
   RotateCcw,
   ChevronRight,
   ClipboardCheck,
-  Brain,
   HelpCircle,
-  Award,
   FileText,
   BookOpen,
-  Target,
   ChevronDown,
   ChevronUp,
   Keyboard
@@ -58,7 +54,7 @@ const ExercisePage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [currentHint, setCurrentHint] = useState(0);
-  const [showSolution, setShowSolution] = useState(false);
+  const [_showSolution, setShowSolution] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState(0);
   const [testResults, setTestResults] = useState<Array<{passed: boolean; input: string; expected: string; actual: string}>>([]);
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
@@ -153,7 +149,7 @@ const ExercisePage: React.FC = () => {
       const result = await response.json();
       
       // Mapear resultados del backend
-      const results = result.testResults.map((tr: any, index: number) => ({
+      const results = result.testResults.map((tr: any) => ({
         passed: tr.passed,
         input: JSON.stringify(tr.input),
         expected: tr.expected === "hidden" ? "[Oculto]" : JSON.stringify(tr.expected),

@@ -149,7 +149,7 @@ const InterviewModePage: React.FC = () => {
     setShowHintConfirm(false);
   };
 
-  const getHintPenalty = (hintIndex: number) => {
+  const getHintPenalty = (_hintIndex: number) => {
     // Cada pista cuesta 10 puntos
     return 10;
   };
@@ -249,7 +249,7 @@ const InterviewModePage: React.FC = () => {
       console.log('✅ Resultados del backend:', result);
 
       // Mapear resultados del backend
-      const results = result.testResults.map((tr: any, index: number) => ({
+      const results = result.testResults.map((tr: any) => ({
         passed: tr.passed,
         input: JSON.stringify(tr.input),
         expected: tr.expected === "hidden" ? "[Oculto]" : JSON.stringify(tr.expected),
@@ -1107,20 +1107,24 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, t
       correctness = Math.floor(Math.random() * 5) + 5;
       efficiency = Math.floor(Math.random() * 5) + 5;
       codeQuality = Math.floor(Math.random() * 5) + 5;
+      timeManagement = 50;
     } else if (codeAnalysis.isEmpty) {
       correctness = 0;
       efficiency = 0;
       codeQuality = 0;
+      timeManagement = 50;
     } else if (codeAnalysis.isMinimal) {
       correctness = 15 + codeAnalysis.structureScore * 15;
       efficiency = 10 + codeAnalysis.patternScore * 20;
       codeQuality = 15 + codeAnalysis.syntaxScore * 20;
+      timeManagement = 70;
     } else {
       correctness = 35 + codeAnalysis.structureScore * 30 + codeAnalysis.patternScore * 20;
       efficiency = 30 + codeAnalysis.patternScore * 35 + codeAnalysis.structureScore * 15;
       codeQuality = 35 + codeAnalysis.syntaxScore * 30 + codeAnalysis.structureScore * 20;
+      timeManagement = 70;
     }
-    
+
     correctness = Math.min(100, Math.floor(correctness));
     efficiency = Math.min(100, Math.floor(efficiency));
     codeQuality = Math.min(100, Math.floor(codeQuality));

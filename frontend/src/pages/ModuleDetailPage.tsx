@@ -19,8 +19,6 @@ import {
   Layers,
   TreeDeciduous,
   Search,
-  Binary,
-  GitBranch,
   Network,
   Repeat,
   Brain,

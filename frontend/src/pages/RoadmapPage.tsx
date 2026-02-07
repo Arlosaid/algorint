@@ -1,20 +1,11 @@
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Flame,
   Trophy,
-  Target,
-  TrendingUp,
   Clock,
   BookOpen,
   Code2,
-  Zap,
-  Award,
-  Star,
   CheckCircle,
-  Medal,
-  Crown,
-  Rocket,
   Circle,
   ArrowRight,
   FileCode,
@@ -62,22 +53,6 @@ const RoadmapPage: React.FC = () => {
       isActiveToday: daysSinceActivity === 0
     };
   }, [progress, getTotalProgress]);
-
-  // Logros disponibles (reservado para futura sección de logros en la UI)
-  const _achievements = [
-    { id: 'first-lesson', title: 'Primera Lección', desc: 'Completa tu primera lección', icon: BookOpen, unlocked: stats.lessonsCompleted >= 1, color: 'primary' },
-    { id: 'first-exercise', title: 'Primer Código', desc: 'Resuelve tu primer ejercicio', icon: Code2, unlocked: stats.exercisesSolved >= 1, color: 'secondary' },
-    { id: 'streak-3', title: 'En Racha', desc: '3 días consecutivos', icon: Flame, unlocked: stats.longestStreak >= 3, color: 'accent' },
-    { id: 'streak-7', title: 'Semana Perfecta', desc: '7 días consecutivos', icon: Star, unlocked: stats.longestStreak >= 7, color: 'accent' },
-    { id: '5-lessons', title: 'Estudiante', desc: 'Completa 5 lecciones', icon: Award, unlocked: stats.lessonsCompleted >= 5, color: 'primary' },
-    { id: '10-exercises', title: 'Programador', desc: 'Resuelve 10 ejercicios', icon: Medal, unlocked: stats.exercisesSolved >= 10, color: 'secondary' },
-    { id: '5-medium', title: 'Desafiante', desc: '5 ejercicios Medium', icon: Target, unlocked: stats.exercisesByDiff.medium >= 5, color: 'secondary' },
-    { id: 'first-hard', title: 'Valiente', desc: 'Resuelve un Hard', icon: Zap, unlocked: stats.exercisesByDiff.hard >= 1, color: 'error' },
-    { id: '25-progress', title: 'Cuarto del Camino', desc: '25% progreso total', icon: TrendingUp, unlocked: stats.totalProgress >= 25, color: 'primary' },
-    { id: '50-progress', title: 'Mitad del Camino', desc: '50% progreso total', icon: Crown, unlocked: stats.totalProgress >= 50, color: 'accent' },
-    { id: '100-progress', title: 'Maestro', desc: '100% completado', icon: Rocket, unlocked: stats.totalProgress >= 100, color: 'accent' },
-    { id: '1-hour', title: 'Dedicado', desc: '1 hora de estudio', icon: Clock, unlocked: stats.totalTimeSpent >= 3600, color: 'primary' },
-  ];
 
   return (
     <div className="min-h-screen py-12">

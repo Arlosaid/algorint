@@ -596,7 +596,7 @@ const LessonPage: React.FC = () => {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quizScore, setQuizScore] = useState({ correct: 0, total: 0 });
+  const [_quizScore, _setQuizScore] = useState({ correct: 0, total: 0 });
   const [isCompleted, setIsCompleted] = useState(false);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
@@ -650,7 +650,7 @@ const LessonPage: React.FC = () => {
     const handleScroll = () => {
       if (!contentRef.current) return;
       const element = contentRef.current;
-      const rect = element.getBoundingClientRect();
+      const _rect = element.getBoundingClientRect();
       const totalHeight = element.scrollHeight - element.clientHeight;
       const scrolled = window.scrollY - element.offsetTop + window.innerHeight;
       const progress = Math.min(Math.max((scrolled / (totalHeight + window.innerHeight)) * 100, 0), 100);
