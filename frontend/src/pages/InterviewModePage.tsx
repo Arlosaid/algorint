@@ -1086,17 +1086,19 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, t
         if (codeAnalysis.isGarbage) {
           efficiency = Math.floor(Math.random() * 10) + 5;
           codeQuality = Math.floor(Math.random() * 10) + 5;
+          timeManagement = 50;
         } else if (codeAnalysis.isMinimal) {
           efficiency = 10 + codeAnalysis.patternScore * 20;
           codeQuality = 15 + codeAnalysis.syntaxScore * 20;
+          timeManagement = 70;
         } else {
           efficiency = 20 + codeAnalysis.patternScore * 30 + codeAnalysis.structureScore * 10;
           codeQuality = 25 + codeAnalysis.syntaxScore * 25 + codeAnalysis.structureScore * 15;
+          timeManagement = timeUsedPercent < 20 ? 90 : timeUsedPercent < 70 ? 85 : 70;
         }
-        
+
         efficiency = Math.min(100, Math.floor(efficiency));
         codeQuality = Math.min(100, Math.floor(codeQuality));
-        timeManagement = timeUsedPercent < 20 ? 90 : timeUsedPercent < 70 ? 85 : 70;
       }
     }
   } else {
