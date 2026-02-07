@@ -1036,10 +1036,10 @@ function generateFeedback(code: string, thinking: string, timeElapsed: number, t
   // CALCULAR SCORES BASADOS EN ANÁLISIS O TESTS REALES
   // ============================================
   
-  let correctness: number;
-  let efficiency: number;
-  let codeQuality: number;
-  let timeManagement: number;
+  let correctness: number = 0;
+  let efficiency: number = 0;
+  let codeQuality: number = 0;
+  let timeManagement: number = 50;
 
   // Si tenemos resultados de tests reales, usarlos para correctness
   if (testResults && testResults.length > 0) {
