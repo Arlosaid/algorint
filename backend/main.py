@@ -7,6 +7,8 @@ Diseñada con principios pedagógicos (Método Feynman) para maximizar el aprend
 Domina el código, conquista tu futuro - Preparación completa para entrevistas técnicas FAANG.
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -71,15 +73,18 @@ app = FastAPI(
 # CONFIGURACIÓN DE CORS
 # ============================================
 
-# Permitir requests del frontend (desarrollo)
+# CORS: desarrollo + producción (Render, Vercel, etc.)
+_cors_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+]
+if os.getenv("FRONTEND_URL"):
+    _cors_origins.append(os.getenv("FRONTEND_URL").rstrip("/"))
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Vite dev server
-        "http://localhost:3001",  # Vite en puerto alternativo
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

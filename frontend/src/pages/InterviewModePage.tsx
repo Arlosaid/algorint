@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { Card, Button, DifficultyBadge } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 /**
  * InterviewModePage
@@ -177,7 +178,7 @@ const InterviewModePage: React.FC = () => {
           isHidden: false
         })) || [];
 
-      const response = await fetch('http://localhost:8000/api/v1/code/run', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/code/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,7 +228,7 @@ const InterviewModePage: React.FC = () => {
         testCasesCount: testCasesForBackend.length
       });
 
-      const response = await fetch('http://localhost:8000/api/v1/code/run', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/code/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

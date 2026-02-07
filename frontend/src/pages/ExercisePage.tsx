@@ -27,6 +27,7 @@ import {
 import Editor from '@monaco-editor/react';
 import { Card, Button, DifficultyBadge } from '../components/ui';
 import { useProgress } from '../context/ProgressContext';
+import { API_BASE_URL } from '../config';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -134,7 +135,7 @@ const ExercisePage: React.FC = () => {
         isHidden: tc.isHidden || false
       }));
 
-      const response = await fetch('http://localhost:8000/api/v1/code/run', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/code/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

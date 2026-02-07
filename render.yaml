@@ -1,0 +1,24 @@
+# Render - Configuración del backend Algorint
+# https://render.com/docs/blueprint-spec
+#
+# Para usar: en el dashboard de Render, al crear el Web Service,
+# configura manualmente según los valores de abajo (o usa "New Blueprint" si aplica).
+
+services:
+  - type: web
+    name: algorint
+    runtime: python
+
+    # Monorepo: el backend está en backend/
+    rootDir: backend
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    # Variables de entorno (todas opcionales)
+    # PORT lo asigna Render automáticamente; no hace falta añadirla.
+    envVars:
+      - key: FRONTEND_URL
+        sync: false
+        # Opcional. URL del frontend en producción para CORS (ej: https://tu-app.vercel.app).
+      # Añade aquí más variables si en el futuro usas DB, API keys, etc.

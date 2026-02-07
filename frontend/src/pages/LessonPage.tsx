@@ -26,6 +26,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Card, Button, DifficultyBadge } from '../components/ui';
 import { useProgress } from '../context/ProgressContext';
+import { API_BASE_URL } from '../config';
 
 // ============================================
 // COMPONENTES MARKDOWN COMPARTIDOS
@@ -616,7 +617,7 @@ const LessonPage: React.FC = () => {
     const fetchLesson = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/v1/lessons/${lessonId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/lessons/${lessonId}`);
         if (!response.ok) throw new Error('Leccion no encontrada');
         const data = await response.json();
         setLesson(data);
