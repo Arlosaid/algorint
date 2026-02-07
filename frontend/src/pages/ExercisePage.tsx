@@ -54,7 +54,7 @@ const ExercisePage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [currentHint, setCurrentHint] = useState(0);
-  const [_showSolution, setShowSolution] = useState(false);
+  // solution visibility handled by `activeTab` state
   const [selectedSolution, setSelectedSolution] = useState(0);
   const [testResults, setTestResults] = useState<Array<{passed: boolean; input: string; expected: string; actual: string}>>([]);
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
@@ -280,7 +280,7 @@ const ExercisePage: React.FC = () => {
               )}
             </button>
             <button
-              onClick={() => { setActiveTab('solution'); setShowSolution(true); }}
+              onClick={() => { setActiveTab('solution'); }}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === 'solution' 
                   ? 'text-secondary-400 border-secondary-400' 

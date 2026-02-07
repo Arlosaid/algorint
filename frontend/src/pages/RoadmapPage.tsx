@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Trophy,
@@ -26,33 +26,9 @@ import { useProgress } from '../context/ProgressContext';
  */
 const RoadmapPage: React.FC = () => {
   const navigate = useNavigate();
-  const { progress, getTotalProgress, getModuleProgress } = useProgress();
+  const { getModuleProgress } = useProgress();
 
-  // Calcular estadísticas
-  const stats = useMemo(() => {
-    const totalProgress = getTotalProgress();
-    const { stats: userStats, lastActivity } = progress;
-    
-    // Calcular días desde última actividad
-    const lastActivityDate = new Date(lastActivity);
-    const today = new Date();
-    const daysSinceActivity = Math.floor((today.getTime() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Contar ejercicios por dificultad
-    const exercisesByDiff = userStats.exercisesByDifficulty || { easy: 0, medium: 0, hard: 0 };
-    
-    return {
-      totalProgress,
-      lessonsCompleted: userStats.totalLessonsCompleted || 0,
-      exercisesSolved: userStats.totalExercisesSolved || 0,
-      currentStreak: userStats.currentStreak || 0,
-      longestStreak: userStats.longestStreak || 0,
-      totalTimeSpent: userStats.totalTimeSpent || 0,
-      exercisesByDiff,
-      daysSinceActivity,
-      isActiveToday: daysSinceActivity === 0
-    };
-  }, [progress, getTotalProgress]);
+  // Statistics previously calculated here were unused; removed to satisfy strict checks.
 
   return (
     <div className="min-h-screen py-12">

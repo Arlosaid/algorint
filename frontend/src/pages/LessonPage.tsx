@@ -596,7 +596,7 @@ const LessonPage: React.FC = () => {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [_quizScore, _setQuizScore] = useState({ correct: 0, total: 0 });
+  // quiz score state removed (not used)
   const [isCompleted, setIsCompleted] = useState(false);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
@@ -650,7 +650,7 @@ const LessonPage: React.FC = () => {
     const handleScroll = () => {
       if (!contentRef.current) return;
       const element = contentRef.current;
-      const _rect = element.getBoundingClientRect();
+      // previously used bounding rect removed (was unused)
       const totalHeight = element.scrollHeight - element.clientHeight;
       const scrolled = window.scrollY - element.offsetTop + window.innerHeight;
       const progress = Math.min(Math.max((scrolled / (totalHeight + window.innerHeight)) * 100, 0), 100);
@@ -817,39 +817,42 @@ const LessonPage: React.FC = () => {
 
           {/* Diagrama Visual */}
           {lesson.visual_diagram && (
-            <Card className="mb-6 border-blue-500/20 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <button
-                onClick={() => toggleSection('diagram')}
-                className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                    <Eye className="text-blue-400" size={20} />
+            <div className="mb-6 border-blue-500/20 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <Card>
+                <button
+                  onClick={() => toggleSection('diagram')}
+                  className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
+                      <Eye className="text-blue-400" size={20} />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-lg font-semibold text-white">Diagrama Visual</h3>
+                      <p className="text-dark-500 text-xs mt-0.5">Visualizacion paso a paso del algoritmo</p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-semibold text-white">Diagrama Visual</h3>
-                    <p className="text-dark-500 text-xs mt-0.5">Visualizacion paso a paso del algoritmo</p>
+                  {expandedSections.diagram ? (
+                    <ChevronUp className="text-dark-400" size={20} />
+                  ) : (
+                    <ChevronDown className="text-dark-400" size={20} />
+                  )}
+                </button>
+
+                {expandedSections.diagram && (
+                  <div className="px-5 pb-5 lesson-section-content">
+                    <div className="diagram-content bg-gradient-to-br from-dark-900 via-dark-900 to-blue-950/20 rounded-lg p-5 overflow-x-auto border border-blue-500/10 shadow-inner shadow-blue-500/5">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={diagramMarkdownComponents}
+                      >
+                        {lesson.visual_diagram}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-                {expandedSections.diagram ? (
-                  <ChevronUp className="text-dark-400" size={20} />
-                ) : (
-                  <ChevronDown className="text-dark-400" size={20} />
                 )}
-              </button>
-              {expandedSections.diagram && (
-                <div className="px-5 pb-5 lesson-section-content">
-                  <div className="diagram-content bg-gradient-to-br from-dark-900 via-dark-900 to-blue-950/20 rounded-lg p-5 overflow-x-auto border border-blue-500/10 shadow-inner shadow-blue-500/5">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={diagramMarkdownComponents}
-                    >
-                      {lesson.visual_diagram}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              )}
-            </Card>
+              </Card>
+            </div>
           )}
 
           {/* Contenido principal */}
@@ -946,100 +949,106 @@ const LessonPage: React.FC = () => {
 
           {/* Código esencial */}
           {lesson.core_code_snippet && (
-            <Card className="mb-6 border-primary-500/20 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <button
-                onClick={() => toggleSection('coreCode')}
-                className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500/20 to-emerald-500/20 flex items-center justify-center">
-                    <Code2 className="text-primary-400" size={20} />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-semibold text-white">Codigo Esencial</h3>
-                    <p className="text-dark-500 text-xs mt-0.5">El patron fundamental que debes memorizar</p>
-                  </div>
-                </div>
-                {expandedSections.coreCode ? (
-                  <ChevronUp className="text-dark-400" size={20} />
-                ) : (
-                  <ChevronDown className="text-dark-400" size={20} />
-                )}
-              </button>
-              {expandedSections.coreCode && (
-                <div className="px-5 pb-5 lesson-section-content">
-                  <div className="rounded-xl overflow-hidden border border-primary-500/20 shadow-lg shadow-primary-500/5">
-                    <div className="bg-gradient-to-r from-primary-500/10 to-emerald-500/5 px-4 py-2 border-b border-primary-500/20 flex items-center gap-2">
-                      <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                        <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                        <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                      </div>
-                      <span className="text-dark-400 text-xs font-mono ml-2">patron.py</span>
+            <div className="mb-6 border-primary-500/20 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <Card>
+                <button
+                  onClick={() => toggleSection('coreCode')}
+                  className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500/20 to-emerald-500/20 flex items-center justify-center">
+                      <Code2 className="text-primary-400" size={20} />
                     </div>
-                    <SyntaxHighlighter
-                      language="python"
-                      style={oneDark}
-                      customStyle={{ borderRadius: 0, margin: 0 }}
-                    >
-                      {lesson.core_code_snippet}
-                    </SyntaxHighlighter>
+                    <div className="text-left">
+                      <h3 className="text-lg font-semibold text-white">Codigo Esencial</h3>
+                      <p className="text-dark-500 text-xs mt-0.5">El patron fundamental que debes memorizar</p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </Card>
+                  {expandedSections.coreCode ? (
+                    <ChevronUp className="text-dark-400" size={20} />
+                  ) : (
+                    <ChevronDown className="text-dark-400" size={20} />
+                  )}
+                </button>
+
+                {expandedSections.coreCode && (
+                  <div className="px-5 pb-5 lesson-section-content">
+                    <div className="rounded-xl overflow-hidden border border-primary-500/20 shadow-lg shadow-primary-500/5">
+                      <div className="bg-gradient-to-r from-primary-500/10 to-emerald-500/5 px-4 py-2 border-b border-primary-500/20 flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                          <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                          <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                        </div>
+                        <span className="text-dark-400 text-xs font-mono ml-2">patron.py</span>
+                      </div>
+                      <SyntaxHighlighter
+                        language="python"
+                        style={oneDark}
+                        customStyle={{ borderRadius: 0, margin: 0 }}
+                      >
+                        {lesson.core_code_snippet}
+                      </SyntaxHighlighter>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
           )}
 
           {/* Ejemplos de código */}
           {lesson.codeExamples && lesson.codeExamples.length > 0 && (
-            <Card className="mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              <button
-                onClick={() => toggleSection('codeExamples')}
-                className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-secondary-500/20 flex items-center justify-center">
-                    <Code2 className="text-secondary-400" size={20} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Ejemplos de Codigo ({lesson.codeExamples.length})
-                  </h3>
-                </div>
-                {expandedSections.codeExamples ? (
-                  <ChevronUp className="text-dark-400" size={20} />
-                ) : (
-                  <ChevronDown className="text-dark-400" size={20} />
-                )}
-              </button>
-              {expandedSections.codeExamples && (
-                <div className="px-4 pb-4 space-y-5 lesson-section-content">
-                  {lesson.codeExamples.map((example, index) => (
-                    <div key={index} className="code-example-card border border-dark-700 rounded-xl overflow-hidden">
-                      <div className="bg-gradient-to-r from-dark-700/80 to-dark-700/50 px-4 py-3 border-b border-dark-700 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-white flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-md bg-secondary-500/20 flex items-center justify-center text-secondary-400 text-xs font-bold">
-                              {index + 1}
-                            </span>
-                            {example.title}
-                          </h4>
-                          {example.description && (
-                            <p className="text-dark-400 text-sm mt-1 ml-8">{example.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <SyntaxHighlighter
-                        language={example.language || "python"}
-                        style={oneDark}
-                        customStyle={{ margin: 0, borderRadius: 0 }}
-                      >
-                        {example.code}
-                      </SyntaxHighlighter>
+            <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <Card>
+                <button
+                  onClick={() => toggleSection('codeExamples')}
+                  className="w-full flex items-center justify-between p-4 hover:bg-dark-700/50 transition-colors rounded-t-xl lesson-section-toggle"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-secondary-500/20 flex items-center justify-center">
+                      <Code2 className="text-secondary-400" size={20} />
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+                    <h3 className="text-lg font-semibold text-white">
+                      Ejemplos de Codigo ({lesson.codeExamples.length})
+                    </h3>
+                  </div>
+                  {expandedSections.codeExamples ? (
+                    <ChevronUp className="text-dark-400" size={20} />
+                  ) : (
+                    <ChevronDown className="text-dark-400" size={20} />
+                  )}
+                </button>
+
+                {expandedSections.codeExamples && (
+                  <div className="px-4 pb-4 space-y-5 lesson-section-content">
+                    {lesson.codeExamples.map((example, index) => (
+                      <div key={index} className="code-example-card border border-dark-700 rounded-xl overflow-hidden">
+                        <div className="bg-gradient-to-r from-dark-700/80 to-dark-700/50 px-4 py-3 border-b border-dark-700 flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-white flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-secondary-500/20 flex items-center justify-center text-secondary-400 text-xs font-bold">
+                                {index + 1}
+                              </span>
+                              {example.title}
+                            </h4>
+                            {example.description && (
+                              <p className="text-dark-400 text-sm mt-1 ml-8">{example.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <SyntaxHighlighter
+                          language={example.language || "python"}
+                          style={oneDark}
+                          customStyle={{ margin: 0, borderRadius: 0 }}
+                        >
+                          {example.code}
+                        </SyntaxHighlighter>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
           )}
 
           {/* Quizzes adicionales al final */}
