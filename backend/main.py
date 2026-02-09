@@ -69,7 +69,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# ============================================
 # CONFIGURACIÓN DE CORS
 # ============================================
 
@@ -79,9 +78,11 @@ _cors_origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://algorint.vercel.app",  # ← AGREGA ESTA LÍNEA
 ]
 if os.getenv("FRONTEND_URL"):
     _cors_origins.append(os.getenv("FRONTEND_URL").rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
@@ -89,7 +90,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # ============================================
 # REGISTRO DE ROUTERS
 # ============================================
