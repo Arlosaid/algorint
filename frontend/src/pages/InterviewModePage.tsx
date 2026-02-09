@@ -56,6 +56,9 @@ const InterviewModePage: React.FC = () => {
   // Sistema de hints
   const [hintsUsed, setHintsUsed] = useState<number[]>([]); // índices de hints usados
   const [showHintConfirm, setShowHintConfirm] = useState(false);
+  
+  // Tab activo en móvil (problema, notas, editor)
+  const [activeTab, setActiveTab] = useState<'problem' | 'notes' | 'editor'>('editor');
 
   // Tips de comunicacion para entrevistas (Metodo Feynman)
   const communicationTips = [
@@ -310,14 +313,14 @@ const InterviewModePage: React.FC = () => {
   // Vista de configuración inicial
   if (!isStarted) {
     return (
-      <div className="min-h-screen py-12">
+      <div className="min-h-screen py-8 md:py-12">
         <div className="container mx-auto px-4 max-w-3xl">
-          <div className="text-center mb-12">
-            <Brain className="text-primary-400 mx-auto mb-4" size={64} />
-            <h1 className="text-4xl font-bold text-white mb-4">
+          <div className="text-center mb-8 md:mb-12">
+            <Brain className="text-primary-400 mx-auto mb-3 md:mb-4" size={48} />
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 md:mb-4">
               Modo Entrevista
             </h1>
-            <p className="text-dark-400 text-lg">
+            <p className="text-dark-400 text-base md:text-lg">
               Simula una entrevista técnica real. Practica bajo presión de tiempo
               y recibe feedback detallado sobre tu desempeño.
             </p>
@@ -327,15 +330,15 @@ const InterviewModePage: React.FC = () => {
             <h2 className="text-xl font-semibold text-white mb-6">Configuración</h2>
             
             {/* Difficulty selection */}
-            <div className="mb-6">
-              <label className="block text-dark-400 mb-3">Dificultad del problema</label>
-              <div className="flex gap-3">
+            <div className="mb-5 md:mb-6">
+              <label className="block text-dark-400 mb-2 md:mb-3 text-sm md:text-base">Dificultad del problema</label>
+              <div className="flex gap-2 md:gap-3">
                 {(['easy', 'medium', 'hard'] as const).map((diff) => (
                   <button
                     key={diff}
                     onClick={() => setSelectedDifficulty(diff)}
                     className={`
-                      flex-1 py-3 rounded-lg font-medium transition-all
+                      flex-1 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium transition-all
                       ${selectedDifficulty === diff 
                         ? diff === 'easy' 
                           ? 'bg-green-500/20 text-green-400 border-2 border-green-500'
@@ -353,9 +356,9 @@ const InterviewModePage: React.FC = () => {
             </div>
 
             {/* Time selection */}
-            <div className="mb-6">
-              <label className="block text-dark-400 mb-3">Tiempo límite</label>
-              <div className="flex gap-3">
+            <div className="mb-5 md:mb-6">
+              <label className="block text-dark-400 mb-2 md:mb-3 text-sm md:text-base">Tiempo límite</label>
+              <div className="flex gap-2 md:gap-3">
                 {[
                   { value: 30 * 60, label: '30 min' },
                   { value: 45 * 60, label: '45 min' },
@@ -365,7 +368,7 @@ const InterviewModePage: React.FC = () => {
                     key={value}
                     onClick={() => setTimeLimit(value)}
                     className={`
-                      flex-1 py-3 rounded-lg font-medium transition-all
+                      flex-1 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium transition-all
                       ${timeLimit === value 
                         ? 'bg-secondary-500/20 text-secondary-400 border-2 border-secondary-500'
                         : 'bg-dark-700 text-dark-400 border-2 border-transparent hover:border-dark-500'
@@ -428,23 +431,23 @@ const InterviewModePage: React.FC = () => {
   // Vista de feedback final
   if (isFinished && feedback) {
     return (
-      <div className="min-h-screen py-12">
+      <div className="min-h-screen py-8 md:py-12">
         <div className="container mx-auto px-4 max-w-3xl">
-          <div className="text-center mb-8">
-            <Trophy className={`mx-auto mb-4 ${feedback.score >= 70 ? 'text-primary-400' : 'text-yellow-400'}`} size={64} />
-            <h1 className="text-4xl font-bold text-white mb-2">
+          <div className="text-center mb-6 md:mb-8">
+            <Trophy className={`mx-auto mb-3 md:mb-4 ${feedback.score >= 70 ? 'text-primary-400' : 'text-yellow-400'}`} size={48} />
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
               Entrevista Completada
             </h1>
-            <p className="text-white font-medium mb-1">{currentProblem?.title}</p>
-            <div className="flex items-center justify-center gap-2 mb-2">
+            <p className="text-white font-medium text-sm md:text-base mb-1">{currentProblem?.title}</p>
+            <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2 mb-2">
               <DifficultyBadge difficulty={currentProblem?.difficulty} />
               {currentProblem?.category && (
-                <span className="px-2 py-0.5 bg-secondary-500/15 text-secondary-400 text-xs rounded-full border border-secondary-500/30">
+                <span className="px-2 py-0.5 bg-secondary-500/15 text-secondary-400 text-[10px] md:text-xs rounded-full border border-secondary-500/30">
                   {currentProblem.category}
                 </span>
               )}
               {currentProblem?.pattern && (
-                <span className="px-2 py-0.5 bg-primary-500/15 text-primary-400 text-xs rounded-full border border-primary-500/30">
+                <span className="px-2 py-0.5 bg-primary-500/15 text-primary-400 text-[10px] md:text-xs rounded-full border border-primary-500/30">
                   {currentProblem.pattern}
                 </span>
               )}
@@ -457,7 +460,7 @@ const InterviewModePage: React.FC = () => {
           {/* Score */}
           <Card className="mb-6">
             <div className="text-center">
-              <div className="text-6xl font-bold mb-2">
+              <div className="text-5xl md:text-6xl font-bold mb-2">
                 <span className={feedback.score >= 70 ? 'text-primary-400' : feedback.score >= 50 ? 'text-yellow-400' : 'text-red-400'}>
                   {feedback.score}
                 </span>
@@ -478,18 +481,18 @@ const InterviewModePage: React.FC = () => {
 
           {/* Detailed scores */}
           <Card className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Evaluación Detallada</h3>
-            <p className="text-dark-500 text-xs mb-4">Ponderación: Correctitud 40% | Eficiencia 25% | Calidad 20% | Tiempo 15%</p>
-            <div className="space-y-4">
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Evaluación Detallada</h3>
+            <p className="text-dark-500 text-[10px] md:text-xs mb-3 md:mb-4">Ponderación: Correctitud 40% | Eficiencia 25% | Calidad 20% | Tiempo 15%</p>
+            <div className="space-y-3 md:space-y-4">
               {[
                 { label: 'Correctitud', value: feedback.correctness, icon: CheckCircle },
                 { label: 'Eficiencia', value: feedback.efficiency, icon: Target },
                 { label: 'Calidad de Código', value: feedback.codeQuality, icon: Brain },
                 { label: 'Manejo del Tiempo', value: feedback.timeManagement, icon: Clock },
               ].map((item) => (
-                <div key={item.label} className="flex items-center gap-4">
-                  <item.icon className="text-dark-500" size={20} />
-                  <span className="text-dark-300 w-36">{item.label}</span>
+                <div key={item.label} className="flex items-center gap-2 md:gap-4">
+                  <item.icon className="text-dark-500 hidden md:block" size={20} />
+                  <span className="text-dark-300 text-xs md:text-sm w-24 md:w-36 flex-shrink-0">{item.label}</span>
                   <div className="flex-1 h-2 bg-dark-700 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${
@@ -498,7 +501,7 @@ const InterviewModePage: React.FC = () => {
                       style={{ width: `${item.value}%` }}
                     />
                   </div>
-                  <span className="text-dark-400 w-12 text-right">{item.value}%</span>
+                  <span className="text-dark-400 text-xs md:text-sm w-10 md:w-12 text-right">{item.value}%</span>
                 </div>
               ))}
             </div>
@@ -604,13 +607,13 @@ const InterviewModePage: React.FC = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 justify-center">
-            <Button variant="outline" onClick={handleReset}>
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+            <Button variant="outline" onClick={handleReset} className="w-full sm:w-auto">
               <RotateCcw size={18} />
               Nueva Entrevista
             </Button>
-            <Link to="/practice">
-              <Button variant="primary">
+            <Link to="/practice" className="w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto">
                 Practicar Más
               </Button>
             </Link>
@@ -622,11 +625,12 @@ const InterviewModePage: React.FC = () => {
 
   // Vista de entrevista activa
   return (
-    <div className="min-h-screen bg-dark-900">
+    <div className="fixed inset-0 z-40 bg-dark-900 flex flex-col">
       {/* Header with timer */}
-      <div className="border-b border-dark-700 bg-dark-800/50 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+      <div className="border-b border-dark-700 bg-dark-800/50 flex-shrink-0">
+        <div className="container mx-auto px-3 md:px-4 py-2 md:py-3">
+          {/* Desktop header */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-lg font-semibold text-white">
                 {currentProblem?.title}
@@ -635,18 +639,12 @@ const InterviewModePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Timer */}
               <div className={`flex items-center gap-2 font-mono text-2xl ${getTimeColor()}`}>
                 <Clock size={24} />
                 {formatTime(timeLimit - timeElapsed)}
               </div>
 
-              {/* Controls */}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handlePause}
-              >
+              <Button variant="ghost" size="sm" onClick={handlePause}>
                 {isPaused ? <Play size={18} /> : <Pause size={18} />}
               </Button>
 
@@ -673,15 +671,74 @@ const InterviewModePage: React.FC = () => {
               </Button>
             </div>
           </div>
+
+          {/* Mobile header */}
+          <div className="flex md:hidden flex-col gap-2">
+            {/* Row 1: Title + Timer */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <h1 className="text-sm font-semibold text-white truncate">
+                  {currentProblem?.title}
+                </h1>
+                <DifficultyBadge difficulty={currentProblem?.difficulty} size="sm" />
+              </div>
+              <div className={`flex items-center gap-1.5 font-mono text-lg flex-shrink-0 ml-2 ${getTimeColor()}`}>
+                <Clock size={16} />
+                {formatTime(timeLimit - timeElapsed)}
+              </div>
+            </div>
+
+            {/* Row 2: Tabs + Controls */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1">
+                {(['problem', 'notes', 'editor'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                      activeTab === tab
+                        ? 'bg-primary-500/20 text-primary-400 border border-primary-500/50'
+                        : 'text-dark-400 hover:text-white hover:bg-dark-700'
+                    }`}
+                  >
+                    {tab === 'problem' ? 'Problema' : tab === 'notes' ? 'Notas' : 'Código'}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={handlePause}
+                  className="p-1.5 rounded-md text-dark-400 hover:text-white hover:bg-dark-700 transition-colors"
+                >
+                  {isPaused ? <Play size={16} /> : <Pause size={16} />}
+                </button>
+                <button
+                  onClick={handleRunCode}
+                  disabled={isRunning || isFinished}
+                  className={`p-1.5 rounded-md text-dark-400 hover:text-white hover:bg-dark-700 transition-colors ${isRunning ? "opacity-50" : ""}`}
+                >
+                  <Play size={16} />
+                </button>
+                <button
+                  onClick={handleFinish}
+                  disabled={isFinished}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 transition-colors ${isFinished ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <Send size={12} />
+                  Enviar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Paused overlay */}
       {isPaused && (
-        <div className="fixed inset-0 bg-dark-900/90 z-50 flex items-center justify-center">
-          <Card className="text-center p-8">
-            <Pause className="text-secondary-400 mx-auto mb-4" size={48} />
-            <h2 className="text-2xl font-bold text-white mb-4">Entrevista Pausada</h2>
+        <div className="fixed inset-0 bg-dark-900/90 z-50 flex items-center justify-center px-4">
+          <Card className="text-center p-6 md:p-8 w-full max-w-md">
+            <Pause className="text-secondary-400 mx-auto mb-3 md:mb-4" size={40} />
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">Entrevista Pausada</h2>
             <p className="text-dark-400 mb-6">
               El cronómetro está detenido. Continúa cuando estés listo.
             </p>
@@ -694,9 +751,9 @@ const InterviewModePage: React.FC = () => {
       )}
 
       {/* Main content */}
-      <div className="flex h-[calc(100vh-60px)]">
-        {/* Problem description - 25% */}
-        <div className="w-1/4 border-r border-dark-700 overflow-y-auto p-4">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Problem description - 25% on desktop, full on mobile */}
+        <div className={`${activeTab === 'problem' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-1/4 border-r border-dark-700 overflow-y-auto p-4`}>
           <div className="space-y-4">
             <section>
               <h2 className="text-md font-semibold text-white mb-2 flex items-center gap-2">
@@ -814,8 +871,8 @@ const InterviewModePage: React.FC = () => {
 
         {/* Hint confirmation modal */}
         {showHintConfirm && (
-          <div className="fixed inset-0 bg-dark-900/80 z-50 flex items-center justify-center">
-            <Card className="max-w-md p-6">
+          <div className="fixed inset-0 bg-dark-900/80 z-50 flex items-center justify-center px-4">
+            <Card className="max-w-md w-full p-4 md:p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full bg-accent-500/20 flex items-center justify-center">
                   <Lightbulb className="text-accent-400" size={24} />
@@ -854,8 +911,8 @@ const InterviewModePage: React.FC = () => {
           </div>
         )}
 
-        {/* Whiteboard/Notes - 25% (Pizarra de Notas - Método Feynman) */}
-        <div className="w-1/4 border-r border-dark-700 flex flex-col bg-dark-850">
+        {/* Whiteboard/Notes - 25% on desktop, full on mobile */}
+        <div className={`${activeTab === 'notes' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-1/4 border-r border-dark-700 bg-dark-850`}>
           {/* Pseudocode section */}
           <div className="flex-1 p-4 border-b border-dark-700">
             <label className="block text-dark-400 text-sm mb-2 flex items-center gap-2">
@@ -901,16 +958,16 @@ const InterviewModePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Editor - 50% */}
-        <div className="w-1/2 flex flex-col">
+        {/* Editor - 50% on desktop, full on mobile */}
+        <div className={`${activeTab === 'editor' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-1/2`}>
           {/* Editor header */}
-          <div className="px-4 py-2 border-b border-dark-700 bg-dark-800 flex items-center justify-between">
-            <span className="text-dark-400 text-sm flex items-center gap-2">
-              <BookOpen size={14} />
+          <div className="px-3 md:px-4 py-1.5 md:py-2 border-b border-dark-700 bg-dark-800 flex items-center justify-between flex-shrink-0">
+            <span className="text-dark-400 text-xs md:text-sm flex items-center gap-1.5 md:gap-2">
+              <BookOpen size={12} />
               Python 3
             </span>
-            <span className="text-dark-500 text-xs">
-              Tiempo restante: <span className={getTimeColor()}>{formatTime(timeLimit - timeElapsed)}</span>
+            <span className="text-dark-500 text-[10px] md:text-xs">
+              <span className={getTimeColor()}>{formatTime(timeLimit - timeElapsed)}</span>
             </span>
           </div>
 
@@ -924,9 +981,15 @@ const InterviewModePage: React.FC = () => {
               theme="vs-dark"
               options={{
                 minimap: { enabled: false },
-                fontSize: 14,
+                fontSize: window.innerWidth < 768 ? 13 : 14,
                 fontFamily: 'JetBrains Mono, monospace',
-                padding: { top: 16 },
+                padding: { top: 10 },
+                wordWrap: window.innerWidth < 768 ? 'on' : 'off',
+                lineNumbersMinChars: window.innerWidth < 768 ? 2 : 3,
+                glyphMargin: false,
+                folding: window.innerWidth >= 768,
+                lineDecorationsWidth: window.innerWidth < 768 ? 0 : 10,
+                scrollBeyondLastLine: false,
               }}
             />
           </div>

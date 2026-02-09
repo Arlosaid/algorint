@@ -65,6 +65,9 @@ const ExercisePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'description' | 'hints' | 'solution'>('description');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
   
+  // Mobile: toggle entre panel de problema y editor
+  const [mobileView, setMobileView] = useState<'problem' | 'code'>('code');
+  
   // Ref para auto-scroll a resultados
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -213,11 +216,12 @@ const ExercisePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-900 flex flex-col">
+    <div className="h-screen bg-dark-900 flex flex-col">
       {/* Header */}
       <div className="border-b border-dark-700 bg-dark-800/50 flex-shrink-0">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-3 md:px-4 py-2 md:py-3">
+          {/* Desktop header */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link 
                 to="/practice"
@@ -234,7 +238,6 @@ const ExercisePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
             <div className="flex items-center gap-2">
               {exerciseProgress?.attempts && (
                 <span className="text-dark-500 text-sm">
@@ -243,51 +246,97 @@ const ExercisePage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Mobile header */}
+          <div className="flex md:hidden flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Link 
+                  to="/practice"
+                  className="text-dark-400 hover:text-white transition-colors flex-shrink-0"
+                >
+                  <ArrowLeft size={18} />
+                </Link>
+                <h1 className="text-sm font-bold text-white truncate">{exercise.title}</h1>
+                <DifficultyBadge difficulty={exercise.difficulty} size="sm" />
+              </div>
+              {exerciseProgress?.attempts && (
+                <span className="text-dark-500 text-xs flex-shrink-0 ml-2">
+                  {exerciseProgress.attempts} int.
+                </span>
+              )}
+            </div>
+            {/* Mobile view toggle */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setMobileView('problem')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  mobileView === 'problem'
+                    ? 'bg-primary-500/20 text-primary-400 border border-primary-500/50'
+                    : 'text-dark-400 hover:text-white hover:bg-dark-700'
+                }`}
+              >
+                <FileText size={13} />
+                Problema
+              </button>
+              <button
+                onClick={() => setMobileView('code')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  mobileView === 'code'
+                    ? 'bg-primary-500/20 text-primary-400 border border-primary-500/50'
+                    : 'text-dark-400 hover:text-white hover:bg-dark-700'
+                }`}
+              >
+                <Code2 size={13} />
+                Código
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main content - Split view */}
-      <div className="flex flex-1 min-h-0">
-        {/* Left panel - Problem description (más compacto) */}
-        <div className="w-2/5 border-r border-dark-700 flex flex-col">
+      {/* Main content - Split on desktop, tabs on mobile */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Left panel - Problem description */}
+        <div className={`${mobileView === 'problem' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-2/5 border-r border-dark-700`}>
           {/* Tabs de navegación */}
-          <div className="flex border-b border-dark-700 bg-dark-800 px-2">
+          <div className="flex border-b border-dark-700 bg-dark-800 px-1 md:px-2">
             <button
               onClick={() => setActiveTab('description')}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === 'description' 
                   ? 'text-primary-400 border-primary-400' 
                   : 'text-dark-400 border-transparent hover:text-white'
               }`}
             >
-              <FileText size={16} />
+              <FileText size={14} />
               Problema
             </button>
             <button
               onClick={() => { setActiveTab('hints'); handleShowHint(); }}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === 'hints' 
                   ? 'text-accent-400 border-accent-400' 
                   : 'text-dark-400 border-transparent hover:text-white'
               }`}
             >
-              <Lightbulb size={16} />
+              <Lightbulb size={14} />
               Pistas
               {showHints && (
-                <span className="bg-accent-500/30 text-accent-400 px-1.5 py-0.5 rounded text-xs">
+                <span className="bg-accent-500/30 text-accent-400 px-1 py-0.5 rounded text-[10px] md:text-xs">
                   {currentHint + 1}/{exercise.hints.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => { setActiveTab('solution'); }}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === 'solution' 
                   ? 'text-secondary-400 border-secondary-400' 
                   : 'text-dark-400 border-transparent hover:text-white'
               }`}
             >
-              <BookOpen size={16} />
+              <BookOpen size={14} />
               Solución
             </button>
           </div>
@@ -560,39 +609,40 @@ const ExercisePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right panel - Code editor (más ancho) */}
-        <div className="w-3/5 flex flex-col">
+        {/* Right panel - Code editor */}
+        <div className={`${mobileView === 'code' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-3/5`}>
           {/* Editor toolbar */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-dark-700 bg-dark-800">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Code2 className="text-dark-500" size={18} />
-                <span className="text-dark-400 text-sm">Python 3</span>
+          <div className="flex items-center justify-between px-3 md:px-4 py-1.5 md:py-2 border-b border-dark-700 bg-dark-800">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <Code2 className="text-dark-500" size={16} />
+                <span className="text-dark-400 text-xs md:text-sm">Python 3</span>
               </div>
               <span className="text-dark-600 text-xs hidden md:inline-flex items-center gap-1">
                 <Keyboard size={12} />
                 Ctrl+Enter para ejecutar
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                <RotateCcw size={16} />
-                Reset
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Button variant="ghost" size="sm" onClick={handleReset} className="!px-2 md:!px-3">
+                <RotateCcw size={14} />
+                <span className="hidden md:inline">Reset</span>
               </Button>
               <Button 
                 variant="primary" 
                 size="sm" 
                 onClick={handleRunCode}
                 loading={isRunning}
+                className="!px-2.5 md:!px-3 text-xs md:text-sm"
               >
-                <Play size={16} />
+                <Play size={14} />
                 Ejecutar
               </Button>
             </div>
           </div>
 
           {/* Monaco Editor */}
-          <div className="flex-1 min-h-[200px] max-h-[700px]">
+          <div className="flex-1 min-h-[150px]">
             <Editor
               height="100%"
               defaultLanguage="python"
@@ -601,18 +651,23 @@ const ExercisePage: React.FC = () => {
               theme="vs-dark"
               options={{
                 minimap: { enabled: false },
-                fontSize: 14,
+                fontSize: window.innerWidth < 768 ? 13 : 14,
                 fontFamily: 'JetBrains Mono, monospace',
-                padding: { top: 16 },
+                padding: { top: 12 },
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
+                lineNumbersMinChars: window.innerWidth < 768 ? 2 : 3,
+                glyphMargin: false,
+                folding: window.innerWidth >= 768,
+                lineDecorationsWidth: window.innerWidth < 768 ? 0 : 10,
+                wordWrap: window.innerWidth < 768 ? 'on' : 'off',
               }}
             />
           </div>
 
           {/* Output panel - con ref para auto-scroll */}
-          <div ref={resultsRef} className="border-t border-dark-700 bg-dark-800">
-            <div className="px-4 py-2 border-b border-dark-700 flex items-center justify-between">
+          <div ref={resultsRef} className="border-t border-dark-700 bg-dark-800 overflow-y-auto max-h-[40vh] md:max-h-none">
+            <div className="px-3 md:px-4 py-1.5 md:py-2 border-b border-dark-700 flex items-center justify-between">
               <span className="text-dark-400 text-sm font-medium">Resultados</span>
               {output && testResults.length > 0 && (
                 <div className="flex items-center gap-3">
@@ -642,7 +697,7 @@ const ExercisePage: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="p-4 min-h-[200px]">
+            <div className="p-3 md:p-4 min-h-[120px] md:min-h-[200px]">
               {output ? (
                 <div className="space-y-3">
                   {/* Resumen visual grande */}

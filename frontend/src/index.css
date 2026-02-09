@@ -111,8 +111,8 @@
 
   /* Input fields */
   .input {
-    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 rounded-lg
-           text-dark-100 placeholder-dark-500
+    @apply w-full px-3 py-2 md:px-4 md:py-3 bg-dark-800 border border-dark-600 rounded-lg
+           text-sm md:text-base text-dark-100 placeholder-dark-500
            focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500
            transition-colors duration-200;
   }
@@ -620,6 +620,33 @@ div[class*="SyntaxHighlighter"]:hover {
   @apply bg-dark-800 !important;
 }
 
+/* Monaco editor mobile optimizations */
+@media (max-width: 768px) {
+  .monaco-editor .line-numbers {
+    font-size: 10px !important;
+    min-width: 20px !important;
+  }
+  
+  .monaco-editor .margin {
+    width: auto !important;
+  }
+
+  .monaco-editor .margin-view-overlays .line-numbers {
+    width: 25px !important;
+    text-align: right;
+    padding-right: 4px;
+  }
+
+  /* Reduce scroll bar width on mobile */
+  .monaco-editor .scrollbar.vertical {
+    width: 6px !important;
+  }
+  
+  .monaco-editor .scrollbar.horizontal {
+    height: 6px !important;
+  }
+}
+
 /* ============================================
    RESPONSIVE UTILITIES
    ============================================ */
@@ -627,6 +654,18 @@ div[class*="SyntaxHighlighter"]:hover {
   .mobile-nav {
     @apply fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700
            flex justify-around py-2 z-50;
+  }
+}
+
+/* Safe area for bottom nav on mobile */
+.pb-safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4rem);
+}
+
+/* Compact badges on mobile */
+@media (max-width: 768px) {
+  .badge {
+    @apply px-2 py-0.5 text-[10px];
   }
 }
 
